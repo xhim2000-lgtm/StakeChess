@@ -18,4 +18,28 @@ export const Colors = {
   black: '#000000',
   walletGradientStart: '#2C5F7C',
   walletGradientEnd: '#1E4A5F',
+
+  // Gaming / Premium palette
+  gaming: {
+    bg: '#0D0D0D',
+    bgSecondary: '#1A1A1A',
+    bgTertiary: '#2A2A2A',
+    bgCard: '#1E1E1E',
+    gold: '#D4AF37',
+    goldLight: '#F4E5C2',
+    goldDark: '#B8941C',
+    goldMuted: '#8B7330',
+    accent: '#D4AF37',
+    textPrimary: '#FFFFFF',
+    textSecondary: '#B8B8B8',
+    textMuted: '#6A6A6A',
+    borderGold: 'rgba(212, 175, 55, 0.3)',
+    borderLight: 'rgba(255, 255, 255, 0.08)',
+    overlay: 'rgba(0, 0, 0, 0.6)',
+    green: '#00C853',
+    greenDark: '#009624',
+    red: '#FF3D3D',
+    purple: '#9C27B0',
+    cyan: '#00BCD4',
+  },
 } as const;

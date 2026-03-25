@@ -2,27 +2,46 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 
+const G = Colors.gaming;
+
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.textLight,
+        tabBarActiveTintColor: G.gold,
+        tabBarInactiveTintColor: G.textMuted,
         tabBarStyle: {
-          backgroundColor: Colors.white,
-          borderTopColor: Colors.border,
+          backgroundColor: G.bgSecondary,
+          borderTopColor: G.borderLight,
+          borderTopWidth: 1,
+          paddingTop: 4,
+          height: 60,
         },
-        headerStyle: { backgroundColor: Colors.background },
-        headerTintColor: Colors.text,
-        headerTitleStyle: { fontWeight: '600' },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: '700',
+          letterSpacing: 0.5,
+          textTransform: 'uppercase',
+        },
+        headerStyle: {
+          backgroundColor: G.bg,
+          shadowColor: 'transparent',
+          elevation: 0,
+        },
+        headerTintColor: G.textPrimary,
+        headerTitleStyle: {
+          fontWeight: '700',
+          letterSpacing: 1,
+        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tournois',
+          title: 'Jouer',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="trophy-outline" size={size} color={color} />
+            <Ionicons name="game-controller" size={size} color={color} />
           ),
         }}
       />
@@ -31,7 +50,7 @@ export default function TabLayout() {
         options={{
           title: 'Mes Tournois',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="list-outline" size={size} color={color} />
+            <Ionicons name="calendar" size={size} color={color} />
           ),
         }}
       />
@@ -40,7 +59,7 @@ export default function TabLayout() {
         options={{
           title: 'Profil',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
+            <Ionicons name="person" size={size} color={color} />
           ),
         }}
       />
