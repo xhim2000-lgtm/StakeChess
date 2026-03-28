@@ -265,6 +265,42 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
 
+        {/* ── Training Section ── */}
+        <View style={styles.trainingSection}>
+          <View style={styles.trainingLeft}>
+            <View style={styles.trainingIconWrap}>
+              <Ionicons name="hardware-chip-outline" size={28} color={G.gold} />
+            </View>
+            <View style={styles.trainingInfo}>
+              <Text style={styles.trainingTitle}>ENTRAINEMENT</Text>
+              <Text style={styles.trainingSubtitle}>Affrontez Stockfish</Text>
+            </View>
+          </View>
+          <View style={styles.trainingLevels}>
+            {([
+              { key: 'beginner', label: 'Débutant', elo: '1200', color: G.green },
+              { key: 'intermediate', label: 'Inter.', elo: '1800', color: G.gold },
+              { key: 'expert', label: 'Expert', elo: '2400', color: G.red },
+            ] as const).map(lv => (
+              <TouchableOpacity
+                key={lv.key}
+                style={[styles.levelButton, { borderColor: lv.color }]}
+                onPress={() => router.push(`/training/${lv.key}`)}
+              >
+                <Text style={[styles.levelLabel, { color: lv.color }]}>{lv.label}</Text>
+                <Text style={styles.levelElo}>ELO {lv.elo}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <TouchableOpacity
+            style={styles.trainingPlayBtn}
+            onPress={() => router.push('/training/intermediate')}
+          >
+            <Ionicons name="flash" size={14} color={G.bg} />
+            <Text style={styles.trainingPlayText}>JOUER</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* ── Featured Tournaments ── */}
         <View style={styles.sectionHeader}>
           <View>
@@ -627,5 +663,89 @@ const styles = StyleSheet.create({
   carouselContent: {
     paddingLeft: 20,
     paddingRight: 6,
+  },
+
+  // ── Training Section ──
+  trainingSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginTop: 14,
+    backgroundColor: G.bgSecondary,
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: G.borderGold,
+    gap: 16,
+  },
+  trainingLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  trainingIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(212, 175, 55, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: G.borderGold,
+  },
+  trainingInfo: {},
+  trainingTitle: {
+    color: G.textPrimary,
+    fontSize: 14,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+  },
+  trainingSubtitle: {
+    color: G.textMuted,
+    fontSize: 11,
+    marginTop: 1,
+  },
+  trainingLevels: {
+    flexDirection: 'row',
+    gap: 8,
+    flex: 1,
+  },
+  levelButton: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.02)',
+  },
+  levelLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  levelElo: {
+    fontSize: 9,
+    color: G.textMuted,
+    marginTop: 1,
+  },
+  trainingPlayBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: G.gold,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    shadowColor: G.gold,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  trainingPlayText: {
+    color: G.bg,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 1,
   },
 });

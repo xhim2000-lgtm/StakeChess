@@ -3,16 +3,18 @@ import { UserProvider } from '@/contexts/UserContext';
 import { Colors } from '@/constants/Colors';
 import { StatusBar } from 'expo-status-bar';
 
+const G = Colors.gaming;
+
 export default function RootLayout() {
   return (
     <UserProvider>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: Colors.background },
-          headerTintColor: Colors.text,
-          headerTitleStyle: { fontWeight: '600' },
-          contentStyle: { backgroundColor: Colors.background },
+          headerStyle: { backgroundColor: G.bgSecondary },
+          headerTintColor: G.textPrimary,
+          headerTitleStyle: { fontWeight: '700' },
+          contentStyle: { backgroundColor: G.bg },
         }}
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -27,6 +29,10 @@ export default function RootLayout() {
         <Stack.Screen
           name="game/[matchId]"
           options={{ title: 'Partie en cours', headerBackTitle: 'Retour' }}
+        />
+        <Stack.Screen
+          name="training/[level]"
+          options={{ title: 'Entraînement', headerBackTitle: 'Retour' }}
         />
       </Stack>
     </UserProvider>

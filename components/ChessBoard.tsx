@@ -1,7 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Colors } from '@/constants/Colors';
-import { Chess, Square, PieceSymbol, Color } from 'chess.js';
+import { Chess, Square, PieceSymbol } from 'chess.js';
+
+const G = Colors.gaming;
 
 const PIECE_UNICODE: Record<string, Record<PieceSymbol, string>> = {
   w: { p: '\u2659', r: '\u2656', n: '\u2658', b: '\u2657', q: '\u2655', k: '\u2654' },
@@ -13,41 +15,38 @@ const RANKS = ['8', '7', '6', '5', '4', '3', '2', '1'];
 
 interface ChessBoardProps {
   onGameEnd?: (result: 'white' | 'black' | 'draw') => void;
+  onMove?: () => void;
+  game?: Chess;
 }
 
-export function ChessBoard({ onGameEnd }: ChessBoardProps) {
-  const [game, setGame] = useState(new Chess());
+export function ChessBoard({ onGameEnd, onMove, game: externalGame }: ChessBoardProps) {
+  const [internalGame] = useState(() => new Chess());
+  const game = externalGame || internalGame;
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const [legalMoves, setLegalMoves] = useState<Square[]>([]);
-  const [, setMoveCount] = useState(0); // force re-render
+  const [, setMoveCount] = useState(0);
 
   const handleSquarePress = useCallback((square: Square) => {
     if (game.isGameOver()) return;
 
     if (selectedSquare) {
-      // Try to make a move
       try {
         const move = game.move({ from: selectedSquare, to: square, promotion: 'q' });
         if (move) {
           setMoveCount(c => c + 1);
           setSelectedSquare(null);
           setLegalMoves([]);
-
+          onMove?.();
           if (game.isGameOver()) {
             let result: 'white' | 'black' | 'draw' = 'draw';
-            if (game.isCheckmate()) {
-              result = game.turn() === 'w' ? 'black' : 'white';
-            }
+            if (game.isCheckmate()) result = game.turn() === 'w' ? 'black' : 'white';
             onGameEnd?.(result);
           }
           return;
         }
-      } catch {
-        // Invalid move, try selecting new piece
-      }
+      } catch { /* invalid move */ }
     }
 
-    // Select a piece
     const piece = game.get(square);
     if (piece && piece.color === game.turn()) {
       setSelectedSquare(square);
@@ -57,19 +56,12 @@ export function ChessBoard({ onGameEnd }: ChessBoardProps) {
       setSelectedSquare(null);
       setLegalMoves([]);
     }
-  }, [game, selectedSquare, onGameEnd]);
+  }, [game, selectedSquare, onGameEnd, onMove]);
 
   const handleResign = () => {
     Alert.alert('Abandonner', 'Voulez-vous vraiment abandonner ?', [
       { text: 'Non', style: 'cancel' },
-      {
-        text: 'Oui',
-        style: 'destructive',
-        onPress: () => {
-          const winner = game.turn() === 'w' ? 'black' : 'white';
-          onGameEnd?.(winner);
-        },
-      },
+      { text: 'Oui', style: 'destructive', onPress: () => onGameEnd?.(game.turn() === 'w' ? 'black' : 'white') },
     ]);
   };
 
@@ -77,13 +69,6 @@ export function ChessBoard({ onGameEnd }: ChessBoardProps) {
     Alert.alert('Nulle', 'Proposition de nulle acceptée (simulation).', [
       { text: 'OK', onPress: () => onGameEnd?.('draw') },
     ]);
-  };
-
-  const handleReset = () => {
-    setGame(new Chess());
-    setSelectedSquare(null);
-    setLegalMoves([]);
-    setMoveCount(0);
   };
 
   const turn = game.turn();
@@ -99,7 +84,6 @@ export function ChessBoard({ onGameEnd }: ChessBoardProps) {
   return (
     <View style={styles.container}>
       <Text style={styles.status}>{statusText}</Text>
-
       <View style={styles.board}>
         {RANKS.map((rank, ri) => (
           <View key={rank} style={styles.row}>
@@ -110,7 +94,6 @@ export function ChessBoard({ onGameEnd }: ChessBoardProps) {
               const piece = game.get(square);
               const isSelected = selectedSquare === square;
               const isLegal = legalMoves.includes(square);
-
               return (
                 <TouchableOpacity
                   key={square}
@@ -123,11 +106,7 @@ export function ChessBoard({ onGameEnd }: ChessBoardProps) {
                   onPress={() => handleSquarePress(square)}
                   activeOpacity={0.7}
                 >
-                  {piece && (
-                    <Text style={styles.piece}>
-                      {PIECE_UNICODE[piece.color][piece.type]}
-                    </Text>
-                  )}
+                  {piece && <Text style={styles.piece}>{PIECE_UNICODE[piece.color][piece.type]}</Text>}
                   {isLegal && !piece && <View style={styles.legalDot} />}
                 </TouchableOpacity>
               );
@@ -135,10 +114,8 @@ export function ChessBoard({ onGameEnd }: ChessBoardProps) {
           </View>
         ))}
         <View style={styles.fileLabels}>
-          <View style={{ width: 18 }} />
-          {FILES.map(f => (
-            <Text key={f} style={styles.fileLabel}>{f}</Text>
-          ))}
+          <View style={{ width: 16 }} />
+          {FILES.map(f => <Text key={f} style={styles.fileLabel}>{f}</Text>)}
         </View>
       </View>
 
@@ -146,15 +123,20 @@ export function ChessBoard({ onGameEnd }: ChessBoardProps) {
         {!isOver ? (
           <>
             <TouchableOpacity style={styles.resignButton} onPress={handleResign}>
-              <Text style={styles.resignText}>Abandonner</Text>
+              <Text style={styles.buttonText}>Abandonner</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.drawButton} onPress={handleDrawOffer}>
-              <Text style={styles.drawText}>Proposer nulle</Text>
+              <Text style={styles.buttonText}>Proposer nulle</Text>
             </TouchableOpacity>
           </>
         ) : (
-          <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-            <Text style={styles.resetText}>Nouvelle partie</Text>
+          <TouchableOpacity style={styles.goldButton} onPress={() => {
+            game.reset();
+            setSelectedSquare(null);
+            setLegalMoves([]);
+            setMoveCount(0);
+          }}>
+            <Text style={styles.goldButtonText}>Nouvelle partie</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -162,112 +144,27 @@ export function ChessBoard({ onGameEnd }: ChessBoardProps) {
   );
 }
 
-const SQUARE_SIZE = 40;
+const SQ = 36;
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-  },
-  status: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  board: {
-    borderWidth: 2,
-    borderColor: Colors.primaryDark,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  rankLabel: {
-    width: 18,
-    textAlign: 'center',
-    fontSize: 11,
-    color: Colors.textSecondary,
-    fontWeight: '500',
-  },
-  fileLabels: {
-    flexDirection: 'row',
-  },
-  fileLabel: {
-    width: SQUARE_SIZE,
-    textAlign: 'center',
-    fontSize: 11,
-    color: Colors.textSecondary,
-    fontWeight: '500',
-    paddingTop: 2,
-  },
-  square: {
-    width: SQUARE_SIZE,
-    height: SQUARE_SIZE,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  lightSquare: {
-    backgroundColor: '#F0D9B5',
-  },
-  darkSquare: {
-    backgroundColor: '#B58863',
-  },
-  selectedSquare: {
-    backgroundColor: '#FFFF00',
-    opacity: 0.8,
-  },
-  legalSquare: {
-    backgroundColor: 'rgba(0, 200, 0, 0.3)',
-  },
-  piece: {
-    fontSize: 30,
-    lineHeight: 36,
-  },
-  legalDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-  },
-  controls: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
-  },
-  resignButton: {
-    backgroundColor: Colors.danger,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  resignText: {
-    color: Colors.white,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  drawButton: {
-    backgroundColor: Colors.textSecondary,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  drawText: {
-    color: Colors.white,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  resetButton: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  resetText: {
-    color: Colors.white,
-    fontWeight: '600',
-    fontSize: 14,
-  },
+  container: { alignItems: 'center' },
+  status: { fontSize: 14, fontWeight: '700', color: G.gold, marginBottom: 8, textAlign: 'center' },
+  board: { borderWidth: 2, borderColor: G.borderGold, borderRadius: 4, overflow: 'hidden' },
+  row: { flexDirection: 'row', alignItems: 'center' },
+  rankLabel: { width: 16, textAlign: 'center', fontSize: 10, color: G.textMuted, fontWeight: '600' },
+  fileLabels: { flexDirection: 'row' },
+  fileLabel: { width: SQ, textAlign: 'center', fontSize: 10, color: G.textMuted, fontWeight: '600', paddingTop: 2 },
+  square: { width: SQ, height: SQ, alignItems: 'center', justifyContent: 'center' },
+  lightSquare: { backgroundColor: '#B8A07E' },
+  darkSquare: { backgroundColor: '#6B4E2F' },
+  selectedSquare: { backgroundColor: G.gold, opacity: 0.85 },
+  legalSquare: { backgroundColor: 'rgba(212, 175, 55, 0.35)' },
+  piece: { fontSize: 26, lineHeight: 32 },
+  legalDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: 'rgba(212,175,55,0.5)' },
+  controls: { flexDirection: 'row', gap: 10, marginTop: 10 },
+  resignButton: { backgroundColor: G.red, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 },
+  drawButton: { backgroundColor: G.textMuted, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 },
+  buttonText: { color: '#FFF', fontWeight: '700', fontSize: 12 },
+  goldButton: { backgroundColor: G.gold, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8 },
+  goldButtonText: { color: G.bg, fontWeight: '800', fontSize: 12 },
 });
