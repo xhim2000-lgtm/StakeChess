@@ -1,24 +1,42 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Alert } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Colors } from '@/constants/Colors';
-import { ChessBoard } from '@/components/ChessBoard';
+import { GameLayout } from '@/components/GameLayout';
 import { getPlayerById } from '@/data/players';
+import { Chess } from 'chess.js';
 
 const G = Colors.gaming;
 
 export default function GameScreen() {
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
 
-  const opponent = getPlayerById('p1') ?? {
-    pseudo: 'Adversaire', elo: 1800, avatar: 'AD', avatarColor: G.textMuted,
+  const opp = getPlayerById('p1');
+  const opponent = {
+    name: opp?.pseudo ?? 'OPPONENT_01',
+    level: 'NIVEAU 11',
+    elo: opp?.elo ?? 1650,
+    avatar: opp?.avatar ?? 'AD',
+    avatarColor: opp?.avatarColor ?? G.textMuted,
+  };
+  const player = {
+    name: 'Vous',
+    level: 'NIVEAU 12',
+    elo: 1850,
+    avatar: 'VS',
+    avatarColor: G.gold,
   };
 
-  const [whiteTime, setWhiteTime] = useState(180);
-  const [blackTime, setBlackTime] = useState(180);
-  const [isWhiteTurn, setIsWhiteTurn] = useState(true);
+  const [game] = useState(() => new Chess());
+  const [whiteTime, setWhiteTime] = useState(600); // 10 min
+  const [blackTime, setBlackTime] = useState(600);
   const [gameActive, setGameActive] = useState(true);
+  const [moveHistory, setMoveHistory] = useState<string[]>([]);
+  const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const [, setTick] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const isWhiteTurn = game.turn() === 'w';
 
   useEffect(() => {
     if (!gameActive) {
@@ -26,72 +44,56 @@ export default function GameScreen() {
       return;
     }
     intervalRef.current = setInterval(() => {
-      if (isWhiteTurn) {
+      if (game.turn() === 'w') {
         setWhiteTime(prev => { if (prev <= 1) { setGameActive(false); return 0; } return prev - 1; });
       } else {
         setBlackTime(prev => { if (prev <= 1) { setGameActive(false); return 0; } return prev - 1; });
       }
     }, 1000);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [isWhiteTurn, gameActive]);
+  }, [gameActive, game]);
 
-  const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+  const handleMove = useCallback(() => {
+    const history = game.history();
+    setMoveHistory([...history]);
+    const moves = game.history({ verbose: true });
+    const last = moves[moves.length - 1];
+    if (last) setLastMove({ from: last.from, to: last.to });
+    setTick(t => t + 1);
+  }, [game]);
+
+  const handleGameEnd = useCallback((result: 'white' | 'black' | 'draw') => {
+    setGameActive(false);
+  }, []);
+
+  const handleResign = () => {
+    Alert.alert('Abandonner', 'Voulez-vous vraiment abandonner ?', [
+      { text: 'Non', style: 'cancel' },
+      { text: 'Oui', style: 'destructive', onPress: () => { setGameActive(false); } },
+    ]);
+  };
+
+  const handleDrawOffer = () => {
+    Alert.alert('Proposition de nulle', 'Nulle acceptée (simulation).', [
+      { text: 'OK', onPress: () => setGameActive(false) },
+    ]);
+  };
 
   return (
-    <View style={styles.container}>
-      {/* Landscape: board center, player bars on sides */}
-      <View style={styles.landscapeRow}>
-        {/* Left: opponent */}
-        <View style={styles.sidePanel}>
-          <View style={[styles.avatar, { backgroundColor: opponent.avatarColor }]}>
-            <Text style={styles.avatarText}>{'avatar' in opponent ? opponent.avatar : 'AD'}</Text>
-          </View>
-          <Text style={styles.playerName}>{opponent.pseudo}</Text>
-          <Text style={styles.playerElo}>{'elo' in opponent ? opponent.elo : 1800}</Text>
-          <View style={[styles.timer, !isWhiteTurn && gameActive && styles.timerActive]}>
-            <Text style={[styles.timerText, !isWhiteTurn && gameActive && styles.timerTextActive]}>
-              {formatTime(blackTime)}
-            </Text>
-          </View>
-        </View>
-
-        {/* Center: board */}
-        <View style={styles.boardContainer}>
-          <ChessBoard onGameEnd={() => setGameActive(false)} />
-        </View>
-
-        {/* Right: you */}
-        <View style={styles.sidePanel}>
-          <View style={[styles.avatar, { backgroundColor: Colors.gaming.gold }]}>
-            <Text style={styles.avatarText}>VS</Text>
-          </View>
-          <Text style={styles.playerName}>Vous</Text>
-          <Text style={styles.playerElo}>1850</Text>
-          <View style={[styles.timer, isWhiteTurn && gameActive && styles.timerActive]}>
-            <Text style={[styles.timerText, isWhiteTurn && gameActive && styles.timerTextActive]}>
-              {formatTime(whiteTime)}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      <Text style={styles.matchInfo}>Match: {matchId}</Text>
-    </View>
+    <GameLayout
+      game={game}
+      opponent={opponent}
+      player={player}
+      whiteTime={whiteTime}
+      blackTime={blackTime}
+      isWhiteTurn={isWhiteTurn}
+      gameActive={gameActive}
+      moveHistory={moveHistory}
+      onGameEnd={handleGameEnd}
+      onMove={handleMove}
+      onResign={handleResign}
+      onDrawOffer={handleDrawOffer}
+      lastMove={lastMove}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: G.bg, padding: 10 },
-  landscapeRow: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 20 },
-  sidePanel: { alignItems: 'center', gap: 6, width: 100 },
-  avatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: G.borderGold },
-  avatarText: { color: G.bg, fontSize: 14, fontWeight: '700' },
-  playerName: { fontSize: 14, fontWeight: '700', color: G.textPrimary },
-  playerElo: { fontSize: 11, color: G.gold },
-  timer: { backgroundColor: G.bgTertiary, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: G.borderLight },
-  timerActive: { backgroundColor: G.gold, borderColor: G.gold },
-  timerText: { fontSize: 20, fontWeight: '700', color: G.textSecondary, fontVariant: ['tabular-nums'] },
-  timerTextActive: { color: G.bg },
-  boardContainer: { justifyContent: 'center', alignItems: 'center' },
-  matchInfo: { textAlign: 'center', fontSize: 10, color: G.textMuted, marginTop: 6 },
-});

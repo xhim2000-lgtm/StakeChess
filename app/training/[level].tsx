@@ -1,9 +1,9 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
-import { ChessBoard } from '@/components/ChessBoard';
+import { GameLayout } from '@/components/GameLayout';
 import { getAIMove } from '@/utils/chessAI';
 import { Chess } from 'chess.js';
 
@@ -24,21 +24,47 @@ export default function TrainingScreen() {
   const [game] = useState(() => new Chess());
   const [gameOver, setGameOver] = useState(false);
   const [result, setResult] = useState('');
+  const [moveHistory, setMoveHistory] = useState<string[]>([]);
+  const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const [whiteTime, setWhiteTime] = useState(600);
+  const [blackTime, setBlackTime] = useState(600);
   const [, setTick] = useState(0);
   const aiThinking = useRef(false);
+
+  const opponent = {
+    name: 'Stockfish AI',
+    level: config.name.toUpperCase(),
+    elo: config.elo,
+    avatar: 'AI',
+    avatarColor: config.color,
+    isAI: true,
+    aiIcon: config.icon,
+  };
+  const player = {
+    name: 'Vous',
+    level: 'NIVEAU 12',
+    elo: 1850,
+    avatar: 'VS',
+    avatarColor: G.gold,
+  };
+
+  const syncHistory = useCallback(() => {
+    const history = game.history();
+    setMoveHistory([...history]);
+    const moves = game.history({ verbose: true });
+    const last = moves[moves.length - 1];
+    if (last) setLastMove({ from: last.from, to: last.to });
+    setTick(t => t + 1);
+  }, [game]);
 
   const playAI = useCallback(() => {
     if (game.isGameOver() || game.turn() !== 'b' || aiThinking.current) return;
     aiThinking.current = true;
-
-    // Small delay to feel more natural
     setTimeout(() => {
       const move = getAIMove(game, aiLevel);
-      if (move) {
-        game.move(move);
-        setTick(t => t + 1);
-      }
+      if (move) game.move(move);
       aiThinking.current = false;
+      syncHistory();
 
       if (game.isGameOver()) {
         setGameOver(true);
@@ -48,16 +74,13 @@ export default function TrainingScreen() {
           setResult('Partie nulle');
         }
       }
-    }, 300 + Math.random() * 500);
-  }, [game, aiLevel]);
+    }, 400 + Math.random() * 600);
+  }, [game, aiLevel, syncHistory]);
 
   const handleMove = useCallback(() => {
-    // After player moves, let AI respond
-    setTick(t => t + 1);
-    if (!game.isGameOver()) {
-      playAI();
-    }
-  }, [game, playAI]);
+    syncHistory();
+    if (!game.isGameOver()) playAI();
+  }, [game, playAI, syncHistory]);
 
   const handleGameEnd = useCallback((res: 'white' | 'black' | 'draw') => {
     setGameOver(true);
@@ -70,96 +93,72 @@ export default function TrainingScreen() {
     game.reset();
     setGameOver(false);
     setResult('');
+    setMoveHistory([]);
+    setLastMove(null);
+    setWhiteTime(600);
+    setBlackTime(600);
+    aiThinking.current = false;
     setTick(t => t + 1);
   };
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.landscapeRow}>
-        {/* Left: AI info */}
-        <View style={styles.sidePanel}>
-          <View style={[styles.aiAvatar, { borderColor: config.color }]}>
-            <Ionicons name={config.icon as any} size={28} color={config.color} />
-          </View>
-          <Text style={styles.aiName}>Stockfish AI</Text>
-          <Text style={[styles.aiLevel, { color: config.color }]}>{config.name}</Text>
-          <Text style={styles.aiElo}>ELO {config.elo}</Text>
-          <View style={[styles.badge, { borderColor: config.color }]}>
-            <Ionicons name="hardware-chip-outline" size={12} color={config.color} />
-            <Text style={[styles.badgeText, { color: config.color }]}>IA</Text>
-          </View>
-        </View>
+  const handleResign = () => {
+    Alert.alert('Abandonner', 'Voulez-vous vraiment abandonner ?', [
+      { text: 'Non', style: 'cancel' },
+      { text: 'Oui', style: 'destructive', onPress: () => handleGameEnd('black') },
+    ]);
+  };
 
-        {/* Center: board */}
-        <View style={styles.boardContainer}>
-          <ChessBoard game={game} onGameEnd={handleGameEnd} onMove={handleMove} />
-        </View>
+  const handleDrawOffer = () => {
+    Alert.alert('Proposition de nulle', 'Nulle acceptée (simulation).', [
+      { text: 'OK', onPress: () => handleGameEnd('draw') },
+    ]);
+  };
 
-        {/* Right: your info + result */}
-        <View style={styles.sidePanel}>
-          <View style={[styles.playerAvatar, { borderColor: G.gold }]}>
-            <Text style={styles.playerAvatarText}>VS</Text>
-          </View>
-          <Text style={styles.playerName}>Vous</Text>
-          <Text style={styles.playerElo}>ELO 1850</Text>
-
-          {gameOver && (
-            <View style={styles.resultBlock}>
-              <Text style={[styles.resultText, {
-                color: result.includes('Victoire') ? G.gold : result.includes('Défaite') ? G.red : G.textSecondary,
-              }]}>
-                {result}
-              </Text>
-              <TouchableOpacity style={styles.restartButton} onPress={handleRestart}>
-                <Ionicons name="reload" size={14} color={G.bg} />
-                <Text style={styles.restartText}>REJOUER</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                <Text style={styles.backText}>Retour</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      </View>
+  const bottomExtra = gameOver ? (
+    <View style={extraStyles.resultBlock}>
+      <Text style={[extraStyles.resultText, {
+        color: result.includes('Victoire') ? G.gold : result.includes('Défaite') ? G.red : G.textSecondary,
+      }]}>
+        {result}
+      </Text>
+      <TouchableOpacity style={extraStyles.restartBtn} onPress={handleRestart}>
+        <Ionicons name="reload" size={12} color={G.bg} />
+        <Text style={extraStyles.restartText}>REJOUER</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => router.back()}>
+        <Text style={extraStyles.backText}>Retour</Text>
+      </TouchableOpacity>
     </View>
+  ) : undefined;
+
+  return (
+    <GameLayout
+      game={game}
+      opponent={opponent}
+      player={player}
+      whiteTime={whiteTime}
+      blackTime={blackTime}
+      isWhiteTurn={game.turn() === 'w'}
+      gameActive={!gameOver}
+      moveHistory={moveHistory}
+      onGameEnd={handleGameEnd}
+      onMove={handleMove}
+      onResign={handleResign}
+      onDrawOffer={handleDrawOffer}
+      lastMove={lastMove}
+      locked={aiThinking.current || game.turn() === 'b'}
+      bottomExtra={bottomExtra}
+    />
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: G.bg, padding: 10 },
-  landscapeRow: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 24 },
-  sidePanel: { alignItems: 'center', gap: 6, width: 110 },
-  aiAvatar: {
-    width: 50, height: 50, borderRadius: 25,
-    backgroundColor: G.bgTertiary, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2,
+const extraStyles = StyleSheet.create({
+  resultBlock: { alignItems: 'center', gap: 6, marginTop: 4 },
+  resultText: { fontSize: 16, fontWeight: '900', letterSpacing: 1 },
+  restartBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: G.gold, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 8,
   },
-  aiName: { fontSize: 14, fontWeight: '700', color: G.textPrimary },
-  aiLevel: { fontSize: 11, fontWeight: '700', letterSpacing: 1 },
-  aiElo: { fontSize: 10, color: G.textMuted },
-  badge: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    borderWidth: 1, borderRadius: 12,
-    paddingHorizontal: 8, paddingVertical: 3,
-    backgroundColor: 'rgba(255,255,255,0.03)',
-  },
-  badgeText: { fontSize: 9, fontWeight: '800', letterSpacing: 1 },
-  playerAvatar: {
-    width: 50, height: 50, borderRadius: 25,
-    backgroundColor: G.bgTertiary, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2,
-  },
-  playerAvatarText: { color: G.gold, fontSize: 16, fontWeight: '800' },
-  playerName: { fontSize: 14, fontWeight: '700', color: G.textPrimary },
-  playerElo: { fontSize: 10, color: G.gold },
-  boardContainer: { justifyContent: 'center', alignItems: 'center' },
-  resultBlock: { alignItems: 'center', gap: 8, marginTop: 12 },
-  resultText: { fontSize: 18, fontWeight: '900', letterSpacing: 1 },
-  restartButton: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: G.gold, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8,
-  },
-  restartText: { color: G.bg, fontWeight: '800', fontSize: 11, letterSpacing: 0.5 },
-  backButton: { paddingVertical: 6 },
-  backText: { color: G.textMuted, fontSize: 12, fontWeight: '600' },
+  restartText: { color: G.bg, fontWeight: '800', fontSize: 10, letterSpacing: 0.5 },
+  backText: { color: G.textMuted, fontSize: 11, fontWeight: '600' },
 });
