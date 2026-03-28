@@ -3,7 +3,7 @@
     "name": "StakeChess",
     "slug": "stakechess",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "landscape",
     "scheme": "stakechess",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,

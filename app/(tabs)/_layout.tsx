@@ -14,14 +14,18 @@ export default function TabLayout() {
           backgroundColor: G.bgSecondary,
           borderTopColor: G.borderLight,
           borderTopWidth: 1,
-          paddingTop: 4,
-          height: 60,
+          height: 46,
+          paddingTop: 2,
+          paddingBottom: 4,
         },
         tabBarLabelStyle: {
-          fontSize: 10,
+          fontSize: 9,
           fontWeight: '700',
           letterSpacing: 0.5,
           textTransform: 'uppercase',
+        },
+        tabBarIconStyle: {
+          marginBottom: -2,
         },
         headerStyle: {
           backgroundColor: G.bg,
@@ -41,7 +45,7 @@ export default function TabLayout() {
           title: 'Jouer',
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="game-controller" size={size} color={color} />
+            <Ionicons name="game-controller" size={size - 4} color={color} />
           ),
         }}
       />
@@ -50,7 +54,7 @@ export default function TabLayout() {
         options={{
           title: 'Mes Tournois',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar" size={size} color={color} />
+            <Ionicons name="calendar" size={size - 4} color={color} />
           ),
         }}
       />
@@ -59,7 +63,7 @@ export default function TabLayout() {
         options={{
           title: 'Profil',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
+            <Ionicons name="person" size={size - 4} color={color} />
           ),
         }}
       />

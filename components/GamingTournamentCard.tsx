@@ -5,8 +5,9 @@ import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 
 const G = Colors.gaming;
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = SCREEN_WIDTH > 600 ? (SCREEN_WIDTH - 64) / 2 : SCREEN_WIDTH - 48;
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+// Landscape: cards sized to fit visible height minus header/tabs
+const CARD_WIDTH = Math.min(SCREEN_W * 0.35, 320);
 
 export interface GamingTournament {
   id: string;
@@ -37,20 +38,20 @@ function formatCoins(n: number): string {
 export function GamingTournamentCard({ tournament, index }: GamingTournamentCardProps) {
   const router = useRouter();
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 500,
-        delay: index * 120,
+        duration: 400,
+        delay: index * 100,
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 500,
-        delay: index * 120,
+        duration: 400,
+        delay: index * 100,
         useNativeDriver: true,
       }),
     ]).start();
@@ -65,26 +66,18 @@ export function GamingTournamentCard({ tournament, index }: GamingTournamentCard
         activeOpacity={0.85}
         onPress={() => router.push(`/online/${tournament.id}`)}
       >
-        {/* Background with gradient layers */}
+        {/* Background layers */}
         <View style={[styles.bgLayer, { backgroundColor: tournament.bgColors[0] }]} />
         <View style={[styles.bgGradientTop, { backgroundColor: tournament.bgColors[1] }]} />
         <View style={styles.bgGradientBottom} />
 
-        {/* Decorative chess piece icon */}
+        {/* Decorative chess piece */}
         <View style={styles.bgIcon}>
           <Text style={styles.bgIconText}>{tournament.icon}</Text>
         </View>
 
-        {/* Pattern overlay */}
-        <View style={styles.patternOverlay}>
-          {[...Array(6)].map((_, i) => (
-            <View key={i} style={[styles.patternDot, {
-              top: 20 + (i % 3) * 80,
-              left: 30 + (i % 2) * 120 + i * 25,
-              opacity: 0.04 + (i % 3) * 0.02,
-            }]} />
-          ))}
-        </View>
+        {/* Gold top border */}
+        <View style={styles.goldBorderTop} />
 
         {/* Content */}
         <View style={styles.content}>
@@ -101,23 +94,23 @@ export function GamingTournamentCard({ tournament, index }: GamingTournamentCard
             )}
           </View>
 
-          {/* Middle: Title + Location */}
+          {/* Title + Location */}
           <View style={styles.middleSection}>
             <Text style={styles.locationText}>{tournament.location}</Text>
-            <Text style={styles.nameText}>{tournament.name}</Text>
+            <Text style={styles.nameText} numberOfLines={1}>{tournament.name}</Text>
           </View>
 
-          {/* Bottom: Stakes + Button */}
+          {/* Stakes + Button */}
           <View style={styles.bottomSection}>
             <View style={styles.stakesRow}>
               <View style={styles.stakeItem}>
-                <Ionicons name="diamond" size={14} color={G.gold} />
+                <Ionicons name="diamond" size={12} color={G.gold} />
                 <Text style={styles.stakeLabel}>Mise</Text>
                 <Text style={styles.stakeValue}>{formatCoins(tournament.stake)}</Text>
               </View>
               <View style={styles.stakeDivider} />
               <View style={styles.stakeItem}>
-                <Ionicons name="trophy" size={14} color={G.gold} />
+                <Ionicons name="trophy" size={12} color={G.gold} />
                 <Text style={styles.stakeLabel}>Prix</Text>
                 <Text style={styles.stakeValueGold}>{formatCoins(tournament.prize)}</Text>
               </View>
@@ -126,7 +119,7 @@ export function GamingTournamentCard({ tournament, index }: GamingTournamentCard
             {/* Players bar */}
             <View style={styles.playersSection}>
               <View style={styles.playersRow}>
-                <Ionicons name="people" size={12} color={G.textSecondary} />
+                <Ionicons name="people" size={10} color={G.textSecondary} />
                 <Text style={styles.playersText}>
                   {tournament.players}/{tournament.maxPlayers}
                 </Text>
@@ -138,14 +131,11 @@ export function GamingTournamentCard({ tournament, index }: GamingTournamentCard
 
             {/* CTA */}
             <TouchableOpacity style={styles.ctaButton} activeOpacity={0.8}>
-              <Ionicons name="flash" size={16} color={G.bg} />
+              <Ionicons name="flash" size={14} color={G.bg} />
               <Text style={styles.ctaText}>REJOINDRE</Text>
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* Gold border glow */}
-        <View style={styles.goldBorderTop} />
       </TouchableOpacity>
     </Animated.View>
   );
@@ -154,11 +144,11 @@ export function GamingTournamentCard({ tournament, index }: GamingTournamentCard
 const styles = StyleSheet.create({
   cardOuter: {
     width: CARD_WIDTH,
-    marginRight: 16,
+    marginRight: 14,
   },
   card: {
-    height: 320,
-    borderRadius: 16,
+    height: 260,
+    borderRadius: 14,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: G.borderLight,
@@ -184,22 +174,12 @@ const styles = StyleSheet.create({
   },
   bgIcon: {
     position: 'absolute',
-    top: 30,
-    right: 20,
-    opacity: 0.12,
+    top: 16,
+    right: 12,
+    opacity: 0.1,
   },
   bgIconText: {
-    fontSize: 80,
-  },
-  patternOverlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  patternDot: {
-    position: 'absolute',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#FFFFFF',
+    fontSize: 60,
   },
   goldBorderTop: {
     position: 'absolute',
@@ -212,7 +192,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: 12,
     justifyContent: 'space-between',
     zIndex: 10,
   },
@@ -223,37 +203,37 @@ const styles = StyleSheet.create({
   },
   badge: {
     borderWidth: 1.5,
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    borderRadius: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   badgeText: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '800',
-    letterSpacing: 1.2,
+    letterSpacing: 1,
     textTransform: 'uppercase',
   },
   liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 4,
     backgroundColor: 'rgba(255, 61, 61, 0.2)',
     borderWidth: 1,
     borderColor: G.red,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    borderRadius: 5,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
   },
   liveIndicator: {
-    width: 6,
-    height: 6,
+    width: 5,
+    height: 5,
     borderRadius: 3,
     backgroundColor: G.red,
   },
   liveText: {
     color: G.red,
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '800',
     letterSpacing: 1,
   },
@@ -262,99 +242,99 @@ const styles = StyleSheet.create({
   },
   locationText: {
     color: G.gold,
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: '600',
     letterSpacing: 1.5,
     textTransform: 'uppercase',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   nameText: {
     color: G.textPrimary,
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
   bottomSection: {
-    gap: 10,
+    gap: 6,
   },
   stakesRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.4)',
-    borderRadius: 10,
-    padding: 10,
+    borderRadius: 8,
+    padding: 8,
     borderWidth: 1,
     borderColor: G.borderGold,
   },
   stakeItem: {
     flex: 1,
     alignItems: 'center',
-    gap: 2,
+    gap: 1,
   },
   stakeDivider: {
     width: 1,
-    height: 30,
+    height: 24,
     backgroundColor: G.borderGold,
   },
   stakeLabel: {
     color: G.textSecondary,
-    fontSize: 10,
+    fontSize: 8,
     fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   stakeValue: {
     color: G.textPrimary,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
   },
   stakeValueGold: {
     color: G.gold,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
   },
   playersSection: {
-    gap: 4,
+    gap: 3,
   },
   playersRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
   playersText: {
     color: G.textSecondary,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '500',
   },
   progressBar: {
-    height: 3,
+    height: 2,
     backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 2,
+    borderRadius: 1,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
     backgroundColor: G.gold,
-    borderRadius: 2,
+    borderRadius: 1,
   },
   ctaButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: 5,
     backgroundColor: G.gold,
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: 9,
+    borderRadius: 8,
     shadowColor: G.gold,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowRadius: 6,
     elevation: 6,
   },
   ctaText: {
     color: G.bg,
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '800',
-    letterSpacing: 1.5,
+    letterSpacing: 1.2,
   },
 });

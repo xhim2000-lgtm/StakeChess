@@ -16,7 +16,7 @@ import { GamingTournamentCard, GamingTournament } from '@/components/GamingTourn
 import { RechargeModal } from '@/components/RechargeModal';
 
 const G = Colors.gaming;
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_W } = Dimensions.get('window');
 
 // ─── Gaming Tournament Data ───────────────────────────────────
 const gamingTournaments: GamingTournament[] = [
@@ -146,7 +146,6 @@ export default function HomeScreen() {
       }),
     ]).start();
 
-    // Shimmer loop
     Animated.loop(
       Animated.sequence([
         Animated.timing(shimmerAnim, { toValue: 1, duration: 2000, useNativeDriver: true }),
@@ -178,25 +177,36 @@ export default function HomeScreen() {
               <Text style={styles.levelText}>NIVEAU 12</Text>
             </View>
           </View>
+
+          {/* Quick actions inline in header for landscape */}
+          <View style={styles.headerQuickActions}>
+            {quickActions.map((action, i) => (
+              <TouchableOpacity key={i} style={[styles.headerQA, { borderColor: action.color }]}>
+                <Ionicons name={action.icon as any} size={16} color={action.color} />
+                <Text style={[styles.headerQALabel, { color: action.color }]}>{action.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
           <View style={styles.headerRight}>
             <TouchableOpacity style={styles.currencyChip} onPress={() => setShowRecharge(true)}>
               <Text style={styles.coinIcon}>{'\u2666'}</Text>
               <Text style={styles.currencyValue}>{formatCoins(user.balance * 1000)}</Text>
               <View style={styles.addIcon}>
-                <Ionicons name="add" size={12} color={G.bg} />
+                <Ionicons name="add" size={10} color={G.bg} />
               </View>
             </TouchableOpacity>
             <TouchableOpacity style={styles.currencyChipGreen} onPress={() => setShowRecharge(true)}>
-              <Ionicons name="ticket" size={14} color={G.green} />
+              <Ionicons name="ticket" size={12} color={G.green} />
               <Text style={styles.ticketValue}>12</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton}>
-              <Ionicons name="settings-outline" size={20} color={G.textSecondary} />
+              <Ionicons name="settings-outline" size={18} color={G.textSecondary} />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* ── Hero Section ── */}
+        {/* ── Hero Section — Landscape: horizontal layout ── */}
         <Animated.View style={[styles.heroSection, {
           opacity: heroOpacity,
           transform: [{ scale: heroScale }],
@@ -205,44 +215,57 @@ export default function HomeScreen() {
           <Text style={styles.heroChessLeft}>{'\u265B'}</Text>
           <Text style={styles.heroChessRight}>{'\u2654'}</Text>
 
-          <View style={styles.heroContent}>
-            <Text style={styles.heroSubtitle}>ONLINE TOURNAMENT PLATFORM</Text>
-            <Animated.Text style={[styles.heroTitle, { opacity: shimmerOpacity }]}>
-              STAKE
-            </Animated.Text>
-            <Text style={styles.heroTitleOutline}>CHESS</Text>
-            <View style={styles.heroDivider}>
-              <View style={styles.heroDividerLine} />
-              <Ionicons name="diamond" size={14} color={G.gold} />
-              <View style={styles.heroDividerLine} />
+          <View style={styles.heroRow}>
+            {/* Left: branding */}
+            <View style={styles.heroTextBlock}>
+              <Text style={styles.heroSubtitle}>ONLINE TOURNAMENT PLATFORM</Text>
+              <View style={styles.heroTitleRow}>
+                <Animated.Text style={[styles.heroTitle, { opacity: shimmerOpacity }]}>
+                  STAKE
+                </Animated.Text>
+                <Text style={styles.heroTitleOutline}> CHESS</Text>
+              </View>
+              <View style={styles.heroDivider}>
+                <View style={styles.heroDividerLine} />
+                <Ionicons name="diamond" size={12} color={G.gold} />
+                <View style={styles.heroDividerLine} />
+              </View>
+              <Text style={styles.heroTagline}>MISEZ. JOUEZ. GAGNEZ.</Text>
             </View>
-            <Text style={styles.heroTagline}>MISEZ. JOUEZ. GAGNEZ.</Text>
-          </View>
 
-          {/* Play button */}
-          <TouchableOpacity
-            style={styles.playButton}
-            activeOpacity={0.85}
-            onPress={() => router.push('/online/t1')}
-          >
-            <Ionicons name="play" size={18} color={G.bg} />
-            <Text style={styles.playButtonText}>JOUEZ !</Text>
-          </TouchableOpacity>
+            {/* Right: stats + play button */}
+            <View style={styles.heroRightBlock}>
+              {/* Compact stats */}
+              <View style={styles.heroStats}>
+                <View style={styles.heroStatItem}>
+                  <Text style={styles.heroStatValue}>{user.elo}</Text>
+                  <Text style={styles.heroStatLabel}>ELO</Text>
+                </View>
+                <View style={styles.heroStatDivider} />
+                <View style={styles.heroStatItem}>
+                  <Text style={styles.heroStatValueGold}>{user.wins}</Text>
+                  <Text style={styles.heroStatLabel}>WINS</Text>
+                </View>
+                <View style={styles.heroStatDivider} />
+                <View style={styles.heroStatItem}>
+                  <Text style={styles.heroStatValueGold}>{formatCoins(user.totalEarnings * 1000)}</Text>
+                  <Text style={styles.heroStatLabel}>GAINS</Text>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={styles.playButton}
+                activeOpacity={0.85}
+                onPress={() => router.push('/online/t1')}
+              >
+                <Ionicons name="play" size={16} color={G.bg} />
+                <Text style={styles.playButtonText}>JOUEZ !</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </Animated.View>
 
-        {/* ── Quick Actions ── */}
-        <View style={styles.quickActions}>
-          {quickActions.map((action, i) => (
-            <TouchableOpacity key={i} style={styles.quickActionItem}>
-              <View style={[styles.quickActionCircle, { borderColor: action.color }]}>
-                <Ionicons name={action.icon as any} size={20} color={action.color} />
-              </View>
-              <Text style={styles.quickActionLabel}>{action.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* ── Featured Tournaments Section ── */}
+        {/* ── Featured Tournaments ── */}
         <View style={styles.sectionHeader}>
           <View>
             <Text style={styles.sectionTitle}>TOURNOIS EN VEDETTE</Text>
@@ -259,7 +282,6 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.carouselContent}
           decelerationRate="fast"
-          snapToInterval={SCREEN_WIDTH > 600 ? (SCREEN_WIDTH - 64) / 2 + 16 : SCREEN_WIDTH - 32}
         >
           {gamingTournaments.filter(t => t.status === 'live' || t.prize >= 100000).map((t, i) => (
             <GamingTournamentCard key={t.id} tournament={t} index={i} />
@@ -279,38 +301,13 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.carouselContent}
           decelerationRate="fast"
-          snapToInterval={SCREEN_WIDTH > 600 ? (SCREEN_WIDTH - 64) / 2 + 16 : SCREEN_WIDTH - 32}
         >
           {gamingTournaments.filter(t => t.status === 'open').map((t, i) => (
             <GamingTournamentCard key={t.id} tournament={t} index={i} />
           ))}
         </ScrollView>
 
-        {/* ── Stats Banner ── */}
-        <View style={styles.statsBanner}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{user.tournamentsPlayed}</Text>
-            <Text style={styles.statLabel}>Parties</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValueGold}>{user.wins}</Text>
-            <Text style={styles.statLabel}>Victoires</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{user.elo}</Text>
-            <Text style={styles.statLabel}>Elo</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValueGold}>{formatCoins(user.totalEarnings * 1000)}</Text>
-            <Text style={styles.statLabel}>Gains</Text>
-          </View>
-        </View>
-
-        {/* ── Bottom spacer ── */}
-        <View style={{ height: 30 }} />
+        <View style={{ height: 16 }} />
       </ScrollView>
 
       <RechargeModal visible={showRecharge} onClose={() => setShowRecharge(false)} />
@@ -328,17 +325,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 20,
+    paddingBottom: 10,
   },
 
-  // Header
+  // ── Header ──
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
     backgroundColor: 'rgba(13,13,13,0.95)',
     borderBottomWidth: 1,
     borderBottomColor: G.borderLight,
@@ -346,12 +342,12 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   logoContainer: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
     backgroundColor: G.bgTertiary,
     alignItems: 'center',
     justifyContent: 'center',
@@ -359,12 +355,12 @@ const styles = StyleSheet.create({
     borderColor: G.borderGold,
   },
   logoIcon: {
-    fontSize: 22,
+    fontSize: 18,
     color: G.gold,
   },
   logoText: {
     color: G.textPrimary,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '800',
     letterSpacing: 1,
   },
@@ -373,40 +369,60 @@ const styles = StyleSheet.create({
   },
   levelText: {
     color: G.goldMuted,
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '700',
     letterSpacing: 1.5,
   },
-  headerRight: {
+  headerQuickActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
+  headerQA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  headerQALabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   currencyChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 4,
     backgroundColor: G.bgTertiary,
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    borderRadius: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
     borderWidth: 1,
     borderColor: G.borderGold,
   },
   coinIcon: {
     color: G.gold,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '800',
   },
   currencyValue: {
     color: G.goldLight,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
   },
   addIcon: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: G.gold,
     alignItems: 'center',
     justifyContent: 'center',
@@ -414,171 +430,187 @@ const styles = StyleSheet.create({
   currencyChipGreen: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
     backgroundColor: G.bgTertiary,
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    borderRadius: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
     borderWidth: 1,
     borderColor: 'rgba(0, 200, 83, 0.3)',
   },
   ticketValue: {
     color: G.green,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
   },
   iconButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: G.bgTertiary,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
-  // Hero
+  // ── Hero — Landscape horizontal layout ──
   heroSection: {
-    alignItems: 'center',
-    paddingVertical: 36,
-    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
     position: 'relative',
     overflow: 'hidden',
   },
   heroChessLeft: {
     position: 'absolute',
-    left: -10,
-    top: 20,
-    fontSize: 120,
+    left: 10,
+    top: -10,
+    fontSize: 100,
     color: G.gold,
-    opacity: 0.04,
+    opacity: 0.03,
   },
   heroChessRight: {
     position: 'absolute',
-    right: -10,
-    bottom: 10,
-    fontSize: 120,
+    right: 10,
+    bottom: -10,
+    fontSize: 100,
     color: G.gold,
-    opacity: 0.04,
+    opacity: 0.03,
   },
-  heroContent: {
+  heroRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     zIndex: 1,
+  },
+  heroTextBlock: {
+    flex: 1,
   },
   heroSubtitle: {
     color: G.textMuted,
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600',
     letterSpacing: 3,
-    marginBottom: 8,
+    marginBottom: 4,
+  },
+  heroTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
   },
   heroTitle: {
     color: G.gold,
-    fontSize: 64,
+    fontSize: 42,
     fontWeight: '900',
-    letterSpacing: 6,
+    letterSpacing: 4,
     textShadowColor: 'rgba(212, 175, 55, 0.3)',
-    textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 20,
-    lineHeight: 72,
+    textShadowOffset: { width: 0, height: 3 },
+    textShadowRadius: 16,
   },
   heroTitleOutline: {
     color: G.textPrimary,
-    fontSize: 58,
+    fontSize: 38,
     fontWeight: '900',
-    letterSpacing: 12,
-    marginTop: -6,
+    letterSpacing: 8,
     textShadowColor: 'rgba(255, 255, 255, 0.1)',
     textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 10,
+    textShadowRadius: 8,
   },
   heroDivider: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginVertical: 14,
+    gap: 10,
+    marginVertical: 8,
   },
   heroDividerLine: {
-    width: 50,
+    width: 40,
     height: 1,
     backgroundColor: G.goldMuted,
   },
   heroTagline: {
     color: G.goldLight,
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 4,
+  },
+  heroRightBlock: {
+    alignItems: 'center',
+    gap: 12,
+    marginLeft: 24,
+  },
+  heroStats: {
+    flexDirection: 'row',
+    backgroundColor: G.bgTertiary,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: G.borderGold,
+    gap: 0,
+  },
+  heroStatItem: {
+    alignItems: 'center',
+    paddingHorizontal: 14,
+  },
+  heroStatDivider: {
+    width: 1,
+    backgroundColor: G.borderGold,
+  },
+  heroStatValue: {
+    color: G.textPrimary,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  heroStatValueGold: {
+    color: G.gold,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  heroStatLabel: {
+    color: G.textMuted,
+    fontSize: 8,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginTop: 2,
   },
   playButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
+    gap: 8,
     backgroundColor: G.gold,
-    paddingHorizontal: 48,
-    paddingVertical: 16,
-    borderRadius: 12,
-    marginTop: 24,
+    paddingHorizontal: 40,
+    paddingVertical: 12,
+    borderRadius: 10,
     shadowColor: G.gold,
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
-    shadowRadius: 16,
+    shadowRadius: 12,
     elevation: 10,
   },
   playButtonText: {
     color: G.bg,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900',
     letterSpacing: 3,
   },
 
-  // Quick actions
-  quickActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: G.borderLight,
-  },
-  quickActionItem: {
-    alignItems: 'center',
-    gap: 6,
-  },
-  quickActionCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 1.5,
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  quickActionLabel: {
-    color: G.textSecondary,
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-  },
-
-  // Section headers
+  // ── Section headers ──
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 14,
+    paddingTop: 14,
+    paddingBottom: 10,
   },
   sectionTitle: {
     color: G.textPrimary,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '800',
     letterSpacing: 1.5,
   },
   sectionSubtitle: {
     color: G.textMuted,
-    fontSize: 12,
-    marginTop: 2,
+    fontSize: 11,
+    marginTop: 1,
   },
   seeAllButton: {
     flexDirection: 'row',
@@ -587,51 +619,13 @@ const styles = StyleSheet.create({
   },
   seeAllText: {
     color: G.gold,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
   },
 
-  // Carousel
+  // ── Carousel ──
   carouselContent: {
     paddingLeft: 20,
-    paddingRight: 4,
-  },
-
-  // Stats banner
-  statsBanner: {
-    flexDirection: 'row',
-    marginHorizontal: 20,
-    marginTop: 24,
-    backgroundColor: G.bgTertiary,
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: G.borderGold,
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statDivider: {
-    width: 1,
-    backgroundColor: G.borderGold,
-  },
-  statValue: {
-    color: G.textPrimary,
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  statValueGold: {
-    color: G.gold,
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  statLabel: {
-    color: G.textMuted,
-    fontSize: 10,
-    fontWeight: '600',
-    marginTop: 2,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
+    paddingRight: 6,
   },
 });
