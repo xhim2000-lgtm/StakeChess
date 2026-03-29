@@ -108,10 +108,17 @@ const gamingTournaments: GamingTournament[] = [
 
 // ─── Quick Action Data ────────────────────────────────────────
 const quickActions = [
-  { icon: 'stats-chart', label: 'Classement', color: G.gold },
-  { icon: 'gift', label: 'Cadeaux', color: '#FF6B6B' },
-  { icon: 'reload', label: 'Roue', color: '#69F0AE' },
-  { icon: 'podium', label: 'Leaderboard', color: '#00E5FF' },
+  { icon: 'stats-chart', label: 'MÉTRIQUES', color: G.gold },
+  { icon: 'trophy', label: 'CLASSEMENTS', color: '#00E5FF' },
+  { icon: 'gift', label: 'CADEAUX', color: '#FF6B6B' },
+  { icon: 'reload', label: 'ROUE DE LA CHANCE', color: '#69F0AE' },
+];
+
+// ─── Training Levels ──────────────────────────────────────────
+const trainingLevels = [
+  { id: 'beginner', name: 'Débutant', icon: 'happy-outline', color: G.green, elo: '800-1200', desc: 'Apprenez les bases' },
+  { id: 'intermediate', name: 'Intermédiaire', icon: 'skull-outline', color: G.gold, elo: '1400-1800', desc: 'Améliorez votre jeu' },
+  { id: 'expert', name: 'Expert', icon: 'flame-outline', color: '#FF3D3D', elo: '2000-2400', desc: 'Stockfish pleine puissance' },
 ];
 
 function formatCoins(n: number): string {
@@ -176,16 +183,6 @@ export default function HomeScreen() {
               <Text style={styles.logoText}>CHESS<Text style={styles.logoAccent}>_PRO</Text></Text>
               <Text style={styles.levelText}>NIVEAU 12</Text>
             </View>
-          </View>
-
-          {/* Quick actions inline in header for landscape */}
-          <View style={styles.headerQuickActions}>
-            {quickActions.map((action, i) => (
-              <TouchableOpacity key={i} style={[styles.headerQA, { borderColor: action.color }]}>
-                <Ionicons name={action.icon as any} size={16} color={action.color} />
-                <Text style={[styles.headerQALabel, { color: action.color }]}>{action.label}</Text>
-              </TouchableOpacity>
-            ))}
           </View>
 
           <View style={styles.headerRight}>
@@ -264,6 +261,56 @@ export default function HomeScreen() {
             </View>
           </View>
         </Animated.View>
+
+        {/* ── Action Buttons Row ── */}
+        <View style={styles.actionRow}>
+          {quickActions.map((action, i) => (
+            <TouchableOpacity key={i} style={styles.actionBtn}>
+              <View style={[styles.actionIconWrap, { borderColor: action.color }]}>
+                <Ionicons name={action.icon as any} size={18} color={action.color} />
+              </View>
+              <Text style={[styles.actionLabel, { color: action.color }]}>{action.label}</Text>
+            </TouchableOpacity>
+          ))}
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.actionBtnPlay]}
+            onPress={() => router.push('/online/t1')}
+          >
+            <View style={[styles.actionIconWrap, styles.actionIconPlay]}>
+              <Ionicons name="play" size={22} color={G.bg} />
+            </View>
+            <Text style={styles.actionLabelPlay}>JOUEZ!</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* ── Training Section ── */}
+        <View style={styles.sectionHeader}>
+          <View>
+            <Text style={styles.sectionTitle}>ENTRAÎNEMENT IA</Text>
+            <Text style={styles.sectionSubtitle}>Jouez contre Stockfish</Text>
+          </View>
+        </View>
+
+        <View style={styles.trainingRow}>
+          {trainingLevels.map((lvl) => (
+            <TouchableOpacity
+              key={lvl.id}
+              style={styles.trainingCard}
+              activeOpacity={0.8}
+              onPress={() => router.push(`/training/${lvl.id}` as any)}
+            >
+              <View style={[styles.trainingIconWrap, { borderColor: lvl.color }]}>
+                <Ionicons name={lvl.icon as any} size={22} color={lvl.color} />
+              </View>
+              <Text style={[styles.trainingName, { color: lvl.color }]}>{lvl.name}</Text>
+              <Text style={styles.trainingElo}>Elo {lvl.elo}</Text>
+              <Text style={styles.trainingDesc}>{lvl.desc}</Text>
+              <View style={[styles.trainingPlayBtn, { backgroundColor: lvl.color }]}>
+                <Text style={styles.trainingPlayText}>JOUER</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
 
         {/* ── Featured Tournaments ── */}
         <View style={styles.sectionHeader}>
@@ -372,26 +419,6 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 1.5,
-  },
-  headerQuickActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  headerQA: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    borderWidth: 1,
-    borderRadius: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    backgroundColor: 'rgba(255,255,255,0.03)',
-  },
-  headerQALabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.3,
   },
   headerRight: {
     flexDirection: 'row',
@@ -621,6 +648,107 @@ const styles = StyleSheet.create({
     color: G.gold,
     fontSize: 12,
     fontWeight: '600',
+  },
+
+  // ── Action Buttons Row ──
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: G.borderLight,
+  },
+  actionBtn: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  actionBtnPlay: {
+    marginLeft: 8,
+  },
+  actionIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  actionIconPlay: {
+    backgroundColor: G.gold,
+    borderColor: G.gold,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  actionLabel: {
+    fontSize: 8,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textAlign: 'center',
+    maxWidth: 70,
+  },
+  actionLabelPlay: {
+    color: G.gold,
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+
+  // ── Training Section ──
+  trainingRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  trainingCard: {
+    flex: 1,
+    backgroundColor: G.bgCard,
+    borderRadius: 12,
+    padding: 14,
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: G.borderLight,
+  },
+  trainingIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  trainingName: {
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  trainingElo: {
+    color: G.textMuted,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  trainingDesc: {
+    color: G.textSecondary,
+    fontSize: 9,
+    textAlign: 'center',
+  },
+  trainingPlayBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 5,
+    borderRadius: 12,
+    marginTop: 4,
+  },
+  trainingPlayText: {
+    color: G.bg,
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 1,
   },
 
   // ── Carousel ──
