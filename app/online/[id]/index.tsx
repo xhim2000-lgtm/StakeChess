@@ -7,11 +7,8 @@ import { useUser } from '@/contexts/UserContext';
 import { getTournamentById } from '@/data/onlineTournaments';
 import { getPlayerById } from '@/data/players';
 
-const typeLabels: Record<string, string> = {
-  blitz: 'Blitz',
-  rapide: 'Rapide',
-  classique: 'Classique',
-};
+const G = Colors.gaming;
+const typeLabels: Record<string, string> = { blitz: 'Blitz', rapide: 'Rapide', classique: 'Classique' };
 
 export default function TournamentDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -22,7 +19,8 @@ export default function TournamentDetailScreen() {
   const tournament = getTournamentById(id);
   if (!tournament) {
     return (
-      <View style={styles.center}>
+      <View style={styles.errorBox}>
+        <Ionicons name="alert-circle-outline" size={40} color={G.red} />
         <Text style={styles.errorText}>Tournoi introuvable</Text>
       </View>
     );
@@ -38,322 +36,221 @@ export default function TournamentDetailScreen() {
     const success = registerForTournament(tournament.id, tournament.buyIn);
     if (success) {
       setShowConfirm(false);
-      Alert.alert('Inscription confirmée', `Vous avez rejoint ${tournament.name}. ${tournament.buyIn}€ déduits.`);
+      Alert.alert('Inscription confirmée', `${tournament.buyIn}€ déduits.`);
     }
   };
 
   const handleLeave = () => {
-    Alert.alert('Se désinscrire', `Voulez-vous quitter ${tournament.name} ? Vous serez remboursé de ${tournament.buyIn}€.`, [
+    Alert.alert('Se désinscrire', `Quitter ${tournament.name} ?`, [
       { text: 'Non', style: 'cancel' },
-      {
-        text: 'Oui',
-        onPress: () => unregisterFromTournament(tournament.id, tournament.buyIn),
-      },
+      { text: 'Oui', onPress: () => unregisterFromTournament(tournament.id, tournament.buyIn) },
     ]);
   };
 
   const startDate = new Date(tournament.startTime);
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.content}>
-        {/* Header info */}
-        <View style={styles.headerCard}>
-          <View style={styles.typeBadge}>
-            <Text style={styles.typeText}>{typeLabels[tournament.type]}</Text>
+    <View style={styles.root}>
+      {/* Left: Tournament Info (40%) */}
+      <View style={styles.leftPanel}>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <View style={styles.leftContent}>
+            <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={18} color={G.gold} />
+              <Text style={styles.backText}>Retour</Text>
+            </TouchableOpacity>
+
+            <View style={styles.typeBadge}>
+              <Text style={styles.typeText}>{typeLabels[tournament.type]}</Text>
+            </View>
+            <Text style={styles.name}>{tournament.name}</Text>
+            <Text style={styles.description}>{tournament.description}</Text>
+
+            {/* Info Grid */}
+            <View style={styles.infoGrid}>
+              {[
+                { icon: 'ticket-outline', label: 'Buy-in', value: `${tournament.buyIn}€` },
+                { icon: 'trophy-outline', label: 'Prize Pool', value: `${tournament.prizePool}€` },
+                { icon: 'time-outline', label: 'Cadence', value: tournament.timeControl.label },
+                { icon: 'layers-outline', label: 'Rondes', value: `${tournament.rounds}` },
+                { icon: 'people-outline', label: 'Joueurs', value: `${tournament.currentPlayers}/${tournament.maxPlayers}` },
+                { icon: 'calendar-outline', label: 'Début', value: startDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) },
+              ].map((item, i) => (
+                <View key={i} style={styles.infoBox}>
+                  <Ionicons name={item.icon as any} size={16} color={G.gold} />
+                  <Text style={styles.infoValue}>{item.value}</Text>
+                  <Text style={styles.infoLabel}>{item.label}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* Prize Distribution */}
+            <Text style={styles.sectionTitle}>RÉPARTITION DES GAINS</Text>
+            <View style={styles.prizeRow}>
+              {[
+                { rank: '1er', pct: 0.5, color: G.gold },
+                { rank: '2ème', pct: 0.3, color: G.textSecondary },
+                { rank: '3ème', pct: 0.2, color: '#CD7F32' },
+              ].map((p, i) => (
+                <View key={i} style={styles.prizeItem}>
+                  <Text style={[styles.prizeAmount, { color: p.color }]}>{(tournament.prizePool * p.pct).toFixed(0)}€</Text>
+                  <Text style={styles.prizeRank}>{p.rank}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* Actions */}
+            <View style={styles.actions}>
+              {canJoin && (
+                <TouchableOpacity style={styles.joinBtn} onPress={() => setShowConfirm(true)}>
+                  <Ionicons name="flash" size={16} color={G.bg} />
+                  <Text style={styles.joinText}>REJOINDRE ({tournament.buyIn}€)</Text>
+                </TouchableOpacity>
+              )}
+              {canLeave && (
+                <TouchableOpacity style={styles.leaveBtn} onPress={handleLeave}>
+                  <Text style={styles.leaveText}>SE DÉSINSCRIRE</Text>
+                </TouchableOpacity>
+              )}
+              {insufficientBalance && (
+                <View style={styles.warningBadge}>
+                  <Ionicons name="warning" size={14} color={G.red} />
+                  <Text style={styles.warningText}>Solde insuffisant ({user.balance.toFixed(2)}€)</Text>
+                </View>
+              )}
+              {registered && (
+                <View style={styles.regBadge}>
+                  <Ionicons name="checkmark-circle" size={14} color={G.green} />
+                  <Text style={styles.regText}>Vous êtes inscrit</Text>
+                </View>
+              )}
+              {(tournament.status === 'in_progress' || tournament.status === 'finished') && (
+                <TouchableOpacity style={styles.leaderboardBtn} onPress={() => router.push(`/online/${tournament.id}/leaderboard`)}>
+                  <Ionicons name="podium-outline" size={16} color={G.bg} />
+                  <Text style={styles.leaderboardText}>CLASSEMENT</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
-          <Text style={styles.name}>{tournament.name}</Text>
-          <Text style={styles.description}>{tournament.description}</Text>
-        </View>
+        </ScrollView>
+      </View>
 
-        {/* Key info grid */}
-        <View style={styles.infoGrid}>
-          <InfoBox label="Buy-in" value={`${tournament.buyIn}€`} icon="ticket-outline" />
-          <InfoBox label="Prize Pool" value={`${tournament.prizePool}€`} icon="trophy-outline" color={Colors.warning} />
-          <InfoBox label="Cadence" value={tournament.timeControl.label} icon="time-outline" />
-          <InfoBox label="Rondes" value={`${tournament.rounds}`} icon="layers-outline" />
-          <InfoBox label="Joueurs" value={`${tournament.currentPlayers}/${tournament.maxPlayers}`} icon="people-outline" />
-          <InfoBox label="Début" value={startDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} icon="calendar-outline" />
-        </View>
-
-        {/* Prize distribution */}
-        <View style={styles.prizeCard}>
-          <Text style={styles.sectionTitle}>Répartition des gains</Text>
-          <View style={styles.prizeRow}>
-            <PrizeItem rank="1er" emoji="🥇" amount={tournament.prizePool * 0.5} color={Colors.gold} />
-            <PrizeItem rank="2ème" emoji="🥈" amount={tournament.prizePool * 0.3} color={Colors.silver} />
-            <PrizeItem rank="3ème" emoji="🥉" amount={tournament.prizePool * 0.2} color={Colors.bronze} />
-          </View>
-        </View>
-
-        {/* Players list */}
-        <View style={styles.playersSection}>
-          <Text style={styles.sectionTitle}>Joueurs inscrits ({tournament.currentPlayers})</Text>
-          {tournament.registeredPlayerIds.map(pid => {
+      {/* Right: Players List (60%) */}
+      <ScrollView style={styles.rightPanel} showsVerticalScrollIndicator={false}>
+        <View style={styles.rightContent}>
+          <Text style={styles.sectionTitle}>JOUEURS INSCRITS ({tournament.currentPlayers})</Text>
+          {tournament.registeredPlayerIds.map((pid, i) => {
             const player = getPlayerById(pid);
             if (!player) return null;
             return (
               <View key={pid} style={styles.playerRow}>
+                <Text style={styles.playerRankNum}>{i + 1}</Text>
                 <View style={[styles.playerAvatar, { backgroundColor: player.avatarColor }]}>
                   <Text style={styles.playerAvatarText}>{player.avatar}</Text>
                 </View>
                 <Text style={styles.playerName}>{player.pseudo}</Text>
-                <Text style={styles.playerElo}>{player.elo}</Text>
+                <Text style={styles.playerElo}>Elo {player.elo}</Text>
               </View>
             );
           })}
         </View>
+      </ScrollView>
 
-        {/* Actions */}
-        <View style={styles.actions}>
-          {canJoin && (
-            <TouchableOpacity style={styles.joinButton} onPress={() => setShowConfirm(true)}>
-              <Text style={styles.joinText}>Rejoindre ({tournament.buyIn}€)</Text>
-            </TouchableOpacity>
-          )}
-          {canLeave && (
-            <TouchableOpacity style={styles.leaveButton} onPress={handleLeave}>
-              <Text style={styles.leaveText}>Se désinscrire</Text>
-            </TouchableOpacity>
-          )}
-          {insufficientBalance && (
-            <View style={styles.insufficientBadge}>
-              <Ionicons name="warning" size={18} color={Colors.danger} />
-              <Text style={styles.insufficientText}>Solde insuffisant ({user.balance.toFixed(2)}€)</Text>
-            </View>
-          )}
-          {registered && (
-            <View style={styles.registeredBadge}>
-              <Ionicons name="checkmark-circle" size={18} color={Colors.success} />
-              <Text style={styles.registeredText}>Vous êtes inscrit</Text>
-            </View>
-          )}
-          {(tournament.status === 'in_progress' || tournament.status === 'finished') && (
-            <TouchableOpacity
-              style={styles.leaderboardButton}
-              onPress={() => router.push(`/online/${tournament.id}/leaderboard`)}
-            >
-              <Ionicons name="podium-outline" size={18} color={Colors.white} />
-              <Text style={styles.leaderboardText}>Voir le classement</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-
-      {/* Confirmation modal */}
+      {/* Confirmation Modal */}
       <Modal visible={showConfirm} transparent animationType="fade">
         <View style={styles.overlay}>
           <View style={styles.modal}>
             <Text style={styles.modalTitle}>Confirmer l'inscription</Text>
             <Text style={styles.modalText}>
-              Rejoindre <Text style={{ fontWeight: '600' }}>{tournament.name}</Text> ?
+              Rejoindre <Text style={{ fontWeight: '700', color: G.gold }}>{tournament.name}</Text> ?
             </Text>
-            <Text style={styles.modalText}>
-              Buy-in : <Text style={{ fontWeight: '600', color: Colors.primary }}>{tournament.buyIn}€</Text>
-            </Text>
-            <Text style={styles.modalBalance}>
-              Solde après inscription : {(user.balance - tournament.buyIn).toFixed(2)}€
-            </Text>
+            <Text style={styles.modalInfo}>Buy-in : {tournament.buyIn}€</Text>
+            <Text style={styles.modalBalance}>Solde après : {(user.balance - tournament.buyIn).toFixed(2)}€</Text>
             <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.cancelButton} onPress={() => setShowConfirm(false)}>
-                <Text style={styles.cancelText}>Annuler</Text>
+              <TouchableOpacity style={styles.modalCancel} onPress={() => setShowConfirm(false)}>
+                <Text style={styles.modalCancelText}>Annuler</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.confirmButton} onPress={handleJoin}>
-                <Text style={styles.confirmText}>Confirmer</Text>
+              <TouchableOpacity style={styles.modalConfirm} onPress={handleJoin}>
+                <Text style={styles.modalConfirmText}>Confirmer</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-    </ScrollView>
-  );
-}
-
-function InfoBox({ label, value, icon, color }: { label: string; value: string; icon: string; color?: string }) {
-  return (
-    <View style={infoStyles.box}>
-      <Ionicons name={icon as any} size={20} color={color || Colors.primary} />
-      <Text style={infoStyles.value}>{value}</Text>
-      <Text style={infoStyles.label}>{label}</Text>
     </View>
   );
 }
-
-function PrizeItem({ rank, emoji, amount, color }: { rank: string; emoji: string; amount: number; color: string }) {
-  return (
-    <View style={prizeStyles.item}>
-      <Text style={prizeStyles.emoji}>{emoji}</Text>
-      <Text style={[prizeStyles.amount, { color }]}>{amount.toFixed(0)}€</Text>
-      <Text style={prizeStyles.rank}>{rank}</Text>
-    </View>
-  );
-}
-
-const infoStyles = StyleSheet.create({
-  box: {
-    width: '30%',
-    backgroundColor: Colors.card,
-    borderRadius: 10,
-    padding: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  value: { fontSize: 16, fontWeight: '600', color: Colors.text, marginTop: 4 },
-  label: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
-});
-
-const prizeStyles = StyleSheet.create({
-  item: { flex: 1, alignItems: 'center' },
-  emoji: { fontSize: 28 },
-  amount: { fontSize: 18, fontWeight: '600', marginTop: 4 },
-  rank: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
-});
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  content: { padding: 16 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  errorText: { fontSize: 16, color: Colors.danger },
-  headerCard: {
-    backgroundColor: Colors.card,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
+  root: { flex: 1, flexDirection: 'row' },
+  errorBox: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
+  errorText: { color: G.red, fontSize: 16, fontWeight: '600' },
+
+  // Left panel
+  leftPanel: { width: '40%', borderRightWidth: 1, borderRightColor: G.borderGold, backgroundColor: 'rgba(0,0,0,0.3)' },
+  leftContent: { padding: 20, gap: 12 },
+  backBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
+  backText: { color: G.gold, fontSize: 12, fontWeight: '600' },
+  typeBadge: { backgroundColor: 'rgba(212,175,55,0.15)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, alignSelf: 'flex-start' },
+  typeText: { color: G.gold, fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
+  name: { color: G.textPrimary, fontSize: 22, fontWeight: '800' },
+  description: { color: G.textSecondary, fontSize: 13, lineHeight: 18 },
+
+  infoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  infoBox: {
+    width: '30%', backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 10, padding: 10,
+    alignItems: 'center', gap: 3, borderWidth: 1, borderColor: G.borderLight,
   },
-  typeBadge: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-    marginBottom: 8,
+  infoValue: { color: G.textPrimary, fontSize: 14, fontWeight: '700' },
+  infoLabel: { color: G.textMuted, fontSize: 9, fontWeight: '600' },
+
+  sectionTitle: { color: G.textPrimary, fontSize: 13, fontWeight: '800', letterSpacing: 1.5 },
+  prizeRow: { flexDirection: 'row', gap: 12 },
+  prizeItem: { flex: 1, alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: G.borderLight },
+  prizeAmount: { fontSize: 18, fontWeight: '700' },
+  prizeRank: { color: G.textMuted, fontSize: 10, marginTop: 2 },
+
+  actions: { gap: 8, marginTop: 4 },
+  joinBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    backgroundColor: G.gold, padding: 14, borderRadius: 12,
   },
-  typeText: { color: Colors.white, fontSize: 12, fontWeight: '600' },
-  name: { fontSize: 22, fontWeight: '600', color: Colors.text, marginBottom: 6 },
-  description: { fontSize: 14, color: Colors.textSecondary, lineHeight: 20 },
-  infoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 16,
-    justifyContent: 'space-between',
+  joinText: { color: G.bg, fontSize: 14, fontWeight: '800', letterSpacing: 1 },
+  leaveBtn: { padding: 12, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: G.red },
+  leaveText: { color: G.red, fontSize: 13, fontWeight: '700' },
+  warningBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,61,61,0.1)', padding: 10, borderRadius: 10 },
+  warningText: { color: G.red, fontSize: 12 },
+  regBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(0,200,83,0.1)', padding: 10, borderRadius: 10 },
+  regText: { color: G.green, fontSize: 12, fontWeight: '500' },
+  leaderboardBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    backgroundColor: G.gold, padding: 12, borderRadius: 12,
   },
-  prizeCard: {
-    backgroundColor: Colors.card,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  sectionTitle: { fontSize: 16, fontWeight: '600', color: Colors.text, marginBottom: 12 },
-  prizeRow: { flexDirection: 'row' },
-  playersSection: {
-    backgroundColor: Colors.card,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
+  leaderboardText: { color: G.bg, fontSize: 13, fontWeight: '800' },
+
+  // Right panel
+  rightPanel: { flex: 1 },
+  rightContent: { padding: 20 },
   playerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10,
+    borderBottomWidth: 1, borderBottomColor: G.borderLight,
   },
-  playerAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  playerAvatarText: { color: Colors.white, fontSize: 12, fontWeight: '600' },
-  playerName: { flex: 1, fontSize: 14, fontWeight: '500', color: Colors.text },
-  playerElo: { fontSize: 14, color: Colors.textSecondary, fontWeight: '500' },
-  actions: { gap: 10, marginBottom: 30 },
-  joinButton: {
-    backgroundColor: Colors.success,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  joinText: { color: Colors.white, fontSize: 16, fontWeight: '600' },
-  leaveButton: {
-    backgroundColor: Colors.white,
-    padding: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.danger,
-  },
-  leaveText: { color: Colors.danger, fontSize: 15, fontWeight: '600' },
-  insufficientBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#FEF2F2',
-    padding: 12,
-    borderRadius: 10,
-  },
-  insufficientText: { color: Colors.danger, fontSize: 14 },
-  registeredBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#ECFDF5',
-    padding: 12,
-    borderRadius: 10,
-  },
-  registeredText: { color: Colors.success, fontSize: 14, fontWeight: '500' },
-  leaderboardButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: Colors.primary,
-    padding: 14,
-    borderRadius: 12,
-  },
-  leaderboardText: { color: Colors.white, fontSize: 15, fontWeight: '600' },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modal: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 24,
-    width: '85%',
-    maxWidth: 360,
-  },
-  modalTitle: { fontSize: 18, fontWeight: '600', color: Colors.text, marginBottom: 12 },
-  modalText: { fontSize: 15, color: Colors.text, marginBottom: 6 },
-  modalBalance: { fontSize: 14, color: Colors.textSecondary, marginTop: 8, marginBottom: 20 },
+  playerRankNum: { color: G.textMuted, fontSize: 12, fontWeight: '700', width: 20, textAlign: 'center' },
+  playerAvatar: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  playerAvatarText: { color: '#FFF', fontSize: 12, fontWeight: '600' },
+  playerName: { flex: 1, color: G.textPrimary, fontSize: 14, fontWeight: '500' },
+  playerElo: { color: G.gold, fontSize: 13, fontWeight: '600' },
+
+  // Modal
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center' },
+  modal: { backgroundColor: G.bgSecondary, borderRadius: 16, padding: 24, width: '40%', maxWidth: 400, borderWidth: 1, borderColor: G.borderGold },
+  modalTitle: { color: G.textPrimary, fontSize: 18, fontWeight: '700', marginBottom: 12 },
+  modalText: { color: G.textSecondary, fontSize: 14, marginBottom: 4 },
+  modalInfo: { color: G.gold, fontSize: 14, fontWeight: '600', marginBottom: 4 },
+  modalBalance: { color: G.textMuted, fontSize: 13, marginBottom: 20 },
   modalActions: { flexDirection: 'row', gap: 12 },
-  cancelButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  cancelText: { color: Colors.textSecondary, fontWeight: '600' },
-  confirmButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    backgroundColor: Colors.success,
-  },
-  confirmText: { color: Colors.white, fontWeight: '600' },
+  modalCancel: { flex: 1, padding: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: G.borderLight },
+  modalCancelText: { color: G.textSecondary, fontWeight: '600' },
+  modalConfirm: { flex: 1, padding: 12, borderRadius: 10, alignItems: 'center', backgroundColor: G.gold },
+  modalConfirmText: { color: G.bg, fontWeight: '700' },
 });

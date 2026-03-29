@@ -1,194 +1,162 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { Colors } from '@/constants/Colors';
-import { WalletCard } from '@/components/WalletCard';
-import { PlayerStats } from '@/components/PlayerStats';
 import { useUser } from '@/contexts/UserContext';
+import { Ionicons } from '@expo/vector-icons';
+
+const G = Colors.gaming;
 
 const typeLabels: Record<string, string> = {
-  blitz: 'Blitz',
-  rapide: 'Rapide',
-  classique: 'Classique',
+  blitz: 'Blitz', rapide: 'Rapide', classique: 'Classique',
 };
 
 export default function ProfileScreen() {
   const { user } = useUser();
+  const winRate = user.tournamentsPlayed > 0
+    ? Math.round((user.wins / user.tournamentsPlayed) * 100) : 0;
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <WalletCard />
-
-      <View style={styles.content}>
-        {/* Avatar & name */}
-        <View style={styles.avatarSection}>
-          <View style={[styles.avatar, { backgroundColor: user.avatarColor }]}>
-            <Text style={styles.avatarText}>{user.avatar}</Text>
-          </View>
-          <Text style={styles.pseudo}>{user.pseudo}</Text>
-          <Text style={styles.eloText}>Elo {user.elo}</Text>
+    <View style={styles.root}>
+      {/* Left: Avatar + Key Stats */}
+      <View style={styles.leftPanel}>
+        <View style={[styles.avatar, { backgroundColor: user.avatarColor }]}>
+          <Text style={styles.avatarText}>{user.avatar}</Text>
         </View>
+        <Text style={styles.pseudo}>{user.pseudo}</Text>
+        <Text style={styles.eloText}>Elo {user.elo}</Text>
 
-        {/* Balance highlight */}
         <View style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>Solde disponible</Text>
+          <Ionicons name="wallet-outline" size={16} color={G.gold} />
           <Text style={styles.balanceAmount}>{user.balance.toFixed(2)}€</Text>
+          <Text style={styles.balanceLabel}>Solde disponible</Text>
         </View>
 
-        {/* Stats */}
-        <Text style={styles.sectionTitle}>Statistiques</Text>
-        <PlayerStats
-          elo={user.elo}
-          tournamentsPlayed={user.tournamentsPlayed}
-          wins={user.wins}
-          draws={user.draws}
-          losses={user.losses}
-          totalEarnings={user.totalEarnings}
-        />
-
-        {/* Tournament history */}
-        <Text style={[styles.sectionTitle, { marginTop: 20 }]}>Historique des tournois</Text>
-        {user.tournamentHistory.length === 0 ? (
-          <Text style={styles.emptyText}>Aucun historique</Text>
-        ) : (
-          user.tournamentHistory.map((h, i) => (
-            <View key={i} style={styles.historyCard}>
-              <View style={styles.historyHeader}>
-                <Text style={styles.historyName}>{h.tournamentName}</Text>
-                <Text style={styles.historyType}>{typeLabels[h.type]}</Text>
-              </View>
-              <View style={styles.historyFooter}>
-                <Text style={styles.historyDate}>
-                  {new Date(h.date).toLocaleDateString('fr-FR')}
-                </Text>
-                <Text style={styles.historyRank}>#{h.rank}/{h.totalPlayers}</Text>
-                {h.earnings > 0 ? (
-                  <Text style={styles.historyEarnings}>+{h.earnings}€</Text>
-                ) : (
-                  <Text style={styles.historyNoEarnings}>0€</Text>
-                )}
-              </View>
+        <View style={styles.miniStats}>
+          {[
+            { v: user.wins, l: 'Victoires' },
+            { v: user.draws, l: 'Nuls' },
+            { v: user.losses, l: 'Défaites' },
+          ].map((s, i) => (
+            <View key={i} style={styles.miniStatItem}>
+              <Text style={styles.miniStatValue}>{s.v}</Text>
+              <Text style={styles.miniStatLabel}>{s.l}</Text>
             </View>
-          ))
-        )}
+          ))}
+        </View>
+
+        <View style={styles.winRateBox}>
+          <Text style={styles.winRateLabel}>WIN RATE</Text>
+          <Text style={styles.winRateValue}>{winRate}%</Text>
+          <View style={styles.winRateBar}>
+            <View style={[styles.winRateFill, { width: `${winRate}%` as any }]} />
+          </View>
+        </View>
       </View>
-    </ScrollView>
+
+      {/* Right: Stats + History */}
+      <ScrollView style={styles.rightPanel} showsVerticalScrollIndicator={false}>
+        <View style={styles.rightContent}>
+          <Text style={styles.sectionTitle}>STATISTIQUES</Text>
+          <View style={styles.statsGrid}>
+            {[
+              { label: 'Tournois joués', value: `${user.tournamentsPlayed}`, icon: 'trophy-outline', color: G.gold },
+              { label: 'Gains totaux', value: `${user.totalEarnings.toFixed(0)}€`, icon: 'cash-outline', color: G.green },
+              { label: 'Elo actuel', value: `${user.elo}`, icon: 'trending-up-outline', color: '#00E5FF' },
+              { label: 'Parties', value: `${user.wins + user.draws + user.losses}`, icon: 'game-controller-outline', color: '#E040FB' },
+            ].map((s, i) => (
+              <View key={i} style={styles.statCard}>
+                <Ionicons name={s.icon as any} size={18} color={s.color} />
+                <Text style={styles.statCardValue}>{s.value}</Text>
+                <Text style={styles.statCardLabel}>{s.label}</Text>
+              </View>
+            ))}
+          </View>
+
+          <Text style={[styles.sectionTitle, { marginTop: 20 }]}>HISTORIQUE DES TOURNOIS</Text>
+          {user.tournamentHistory.length === 0 ? (
+            <View style={styles.emptyBox}>
+              <Ionicons name="document-text-outline" size={32} color={G.textMuted} />
+              <Text style={styles.emptyText}>Aucun historique</Text>
+            </View>
+          ) : (
+            user.tournamentHistory.map((h, i) => (
+              <View key={i} style={styles.historyCard}>
+                <View style={styles.historyHeader}>
+                  <Text style={styles.historyName}>{h.tournamentName}</Text>
+                  <View style={styles.historyBadge}>
+                    <Text style={styles.historyBadgeText}>{typeLabels[h.type]}</Text>
+                  </View>
+                </View>
+                <View style={styles.historyFooter}>
+                  <Text style={styles.historyDate}>{new Date(h.date).toLocaleDateString('fr-FR')}</Text>
+                  <Text style={styles.historyRank}>#{h.rank}/{h.totalPlayers}</Text>
+                  <Text style={[styles.historyEarnings, h.earnings > 0 && { color: G.green }]}>
+                    {h.earnings > 0 ? `+${h.earnings}€` : '0€'}
+                  </Text>
+                </View>
+              </View>
+            ))
+          )}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  content: {
-    padding: 16,
-  },
-  avatarSection: {
-    alignItems: 'center',
-    marginBottom: 20,
+  root: { flex: 1, flexDirection: 'row' },
+  leftPanel: {
+    width: '30%', padding: 20, alignItems: 'center', justifyContent: 'center', gap: 10,
+    borderRightWidth: 1, borderRightColor: G.borderGold, backgroundColor: 'rgba(0,0,0,0.3)',
   },
   avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
+    width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: G.gold,
   },
-  avatarText: {
-    color: Colors.white,
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  pseudo: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  eloText: {
-    fontSize: 15,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
+  avatarText: { color: '#FFF', fontSize: 24, fontWeight: '700' },
+  pseudo: { color: G.textPrimary, fontSize: 20, fontWeight: '800' },
+  eloText: { color: G.gold, fontSize: 14, fontWeight: '600' },
   balanceCard: {
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 20,
+    alignItems: 'center', gap: 4, backgroundColor: 'rgba(212,175,55,0.1)',
+    borderRadius: 12, padding: 14, width: '100%', borderWidth: 1, borderColor: G.borderGold,
   },
-  balanceLabel: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 14,
+  balanceAmount: { color: G.gold, fontSize: 28, fontWeight: '800' },
+  balanceLabel: { color: G.textMuted, fontSize: 10, fontWeight: '600' },
+  miniStats: { flexDirection: 'row', gap: 12, width: '100%', justifyContent: 'center' },
+  miniStatItem: { alignItems: 'center' },
+  miniStatValue: { color: G.textPrimary, fontSize: 16, fontWeight: '700' },
+  miniStatLabel: { color: G.textMuted, fontSize: 9, fontWeight: '600' },
+  winRateBox: {
+    width: '100%', backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 10, padding: 12,
+    alignItems: 'center', gap: 4,
   },
-  balanceAmount: {
-    color: Colors.white,
-    fontSize: 32,
-    fontWeight: '600',
-    marginTop: 4,
+  winRateLabel: { color: G.textMuted, fontSize: 9, fontWeight: '700', letterSpacing: 1 },
+  winRateValue: { color: G.gold, fontSize: 22, fontWeight: '800' },
+  winRateBar: { width: '100%', height: 4, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' },
+  winRateFill: { height: '100%', backgroundColor: G.gold, borderRadius: 2 },
+
+  rightPanel: { flex: 1 },
+  rightContent: { padding: 20 },
+  sectionTitle: { color: G.textPrimary, fontSize: 14, fontWeight: '800', letterSpacing: 1.5, marginBottom: 12 },
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  statCard: {
+    width: '23%', backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 12, padding: 14,
+    alignItems: 'center', gap: 4, borderWidth: 1, borderColor: G.borderLight,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 12,
-  },
+  statCardValue: { color: G.textPrimary, fontSize: 18, fontWeight: '700' },
+  statCardLabel: { color: G.textMuted, fontSize: 9, fontWeight: '600', textAlign: 'center' },
+  emptyBox: { alignItems: 'center', paddingVertical: 30, gap: 8 },
+  emptyText: { color: G.textMuted, fontSize: 13 },
   historyCard: {
-    backgroundColor: Colors.card,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 12, padding: 14, marginBottom: 8,
+    borderWidth: 1, borderColor: G.borderLight,
   },
-  historyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  historyName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.text,
-    flex: 1,
-  },
-  historyType: {
-    fontSize: 12,
-    color: Colors.primary,
-    fontWeight: '500',
-    backgroundColor: '#EBF4F8',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  historyFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  historyDate: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
-  historyRank: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  historyEarnings: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.success,
-  },
-  historyNoEarnings: {
-    fontSize: 14,
-    color: Colors.textLight,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: Colors.textLight,
-    textAlign: 'center',
-    paddingVertical: 20,
-  },
+  historyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  historyName: { color: G.textPrimary, fontSize: 14, fontWeight: '600', flex: 1 },
+  historyBadge: { backgroundColor: 'rgba(212,175,55,0.15)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
+  historyBadgeText: { color: G.gold, fontSize: 10, fontWeight: '600' },
+  historyFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  historyDate: { color: G.textMuted, fontSize: 12 },
+  historyRank: { color: G.textSecondary, fontSize: 13, fontWeight: '600' },
+  historyEarnings: { color: G.textMuted, fontSize: 13, fontWeight: '600' },
 });
