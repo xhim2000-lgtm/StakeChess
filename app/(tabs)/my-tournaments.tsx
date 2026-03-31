@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { useUser } from '@/contexts/UserContext';
 import { onlineTournaments } from '@/data/onlineTournaments';
+import { useLayout } from '@/hooks/useLayout';
 
 const G = Colors.gaming;
 const typeLabels: Record<string, string> = { blitz: 'Blitz', rapide: 'Rapide', classique: 'Classique' };
@@ -12,6 +13,7 @@ const typeLabels: Record<string, string> = { blitz: 'Blitz', rapide: 'Rapide', c
 export default function MyTournamentsScreen() {
   const { user } = useUser();
   const router = useRouter();
+  const { isLandscape } = useLayout();
 
   const registered = onlineTournaments.filter(t => user.registeredTournaments.includes(t.id));
   const inProgress = registered.filter(t => t.status === 'in_progress');
@@ -40,9 +42,9 @@ export default function MyTournamentsScreen() {
   );
 
   return (
-    <View style={styles.root}>
-      {/* Left: Summary */}
-      <View style={styles.leftPanel}>
+    <View style={[styles.root, !isLandscape && { flexDirection: 'column' }]}>
+      {/* Left/Top: Summary */}
+      <View style={[styles.leftPanel, !isLandscape && styles.topPanel]}>
         <Ionicons name="trophy" size={40} color={G.gold} />
         <Text style={styles.leftTitle}>MES TOURNOIS</Text>
         <View style={styles.summaryRow}>
@@ -139,6 +141,10 @@ const styles = StyleSheet.create({
   leftPanel: {
     width: '30%', padding: 20, alignItems: 'center', justifyContent: 'center', gap: 16,
     borderRightWidth: 1, borderRightColor: G.borderGold, backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  topPanel: {
+    width: '100%', paddingVertical: 16, paddingHorizontal: 20, gap: 12,
+    borderRightWidth: 0, borderBottomWidth: 1, borderBottomColor: G.borderGold,
   },
   leftTitle: { color: G.gold, fontSize: 16, fontWeight: '900', letterSpacing: 2 },
   summaryRow: { flexDirection: 'row', gap: 16 },

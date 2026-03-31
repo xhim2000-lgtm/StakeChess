@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { useUser } from '@/contexts/UserContext';
 import { Ionicons } from '@expo/vector-icons';
+import { useLayout } from '@/hooks/useLayout';
 
 const G = Colors.gaming;
 
@@ -12,13 +13,14 @@ const typeLabels: Record<string, string> = {
 
 export default function ProfileScreen() {
   const { user } = useUser();
+  const { isLandscape } = useLayout();
   const winRate = user.tournamentsPlayed > 0
     ? Math.round((user.wins / user.tournamentsPlayed) * 100) : 0;
 
   return (
-    <View style={styles.root}>
-      {/* Left: Avatar + Key Stats */}
-      <View style={styles.leftPanel}>
+    <View style={[styles.root, !isLandscape && { flexDirection: 'column' }]}>
+      {/* Left/Top: Avatar + Key Stats */}
+      <View style={[styles.leftPanel, !isLandscape && styles.topPanel]}>
         <View style={[styles.avatar, { backgroundColor: user.avatarColor }]}>
           <Text style={styles.avatarText}>{user.avatar}</Text>
         </View>
@@ -64,7 +66,7 @@ export default function ProfileScreen() {
               { label: 'Elo actuel', value: `${user.elo}`, icon: 'trending-up-outline', color: '#00E5FF' },
               { label: 'Parties', value: `${user.wins + user.draws + user.losses}`, icon: 'game-controller-outline', color: '#E040FB' },
             ].map((s, i) => (
-              <View key={i} style={styles.statCard}>
+              <View key={i} style={[styles.statCard, !isLandscape && { width: '46%' }]}>
                 <Ionicons name={s.icon as any} size={18} color={s.color} />
                 <Text style={styles.statCardValue}>{s.value}</Text>
                 <Text style={styles.statCardLabel}>{s.label}</Text>
@@ -108,6 +110,11 @@ const styles = StyleSheet.create({
   leftPanel: {
     width: '30%', padding: 20, alignItems: 'center', justifyContent: 'center', gap: 10,
     borderRightWidth: 1, borderRightColor: G.borderGold, backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  topPanel: {
+    width: '100%', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center',
+    paddingVertical: 16, paddingHorizontal: 20, gap: 12,
+    borderRightWidth: 0, borderBottomWidth: 1, borderBottomColor: G.borderGold,
   },
   avatar: {
     width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center',

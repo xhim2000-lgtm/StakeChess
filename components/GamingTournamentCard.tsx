@@ -1,14 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
+import { useLayout } from '@/hooks/useLayout';
 
 const G = Colors.gaming;
-const { height: SCREEN_H } = Dimensions.get('window');
-
-const CARD_WIDTH = 320;
-const CARD_HEIGHT = Math.min(SCREEN_H - 120, 400);
 
 export interface GamingTournament {
   id: string;
@@ -38,8 +35,12 @@ function formatCoins(n: number): string {
 
 export function GamingTournamentCard({ tournament, index }: GamingTournamentCardProps) {
   const router = useRouter();
+  const { isLandscape, height: screenH } = useLayout();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
+
+  const cardWidth = isLandscape ? 320 : 280;
+  const cardHeight = isLandscape ? Math.min(screenH - 120, 400) : 340;
 
   useEffect(() => {
     Animated.parallel([
@@ -51,9 +52,9 @@ export function GamingTournamentCard({ tournament, index }: GamingTournamentCard
   const fillPct = (tournament.players / tournament.maxPlayers) * 100;
 
   return (
-    <Animated.View style={[styles.cardOuter, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+    <Animated.View style={[styles.cardOuter, { width: cardWidth, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
       <TouchableOpacity
-        style={styles.card}
+        style={[styles.card, { height: cardHeight }]}
         activeOpacity={0.85}
         onPress={() => router.push(`/online/${tournament.id}`)}
       >
@@ -122,8 +123,8 @@ export function GamingTournamentCard({ tournament, index }: GamingTournamentCard
 }
 
 const styles = StyleSheet.create({
-  cardOuter: { width: CARD_WIDTH },
-  card: { height: CARD_HEIGHT, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: G.borderLight },
+  cardOuter: {},
+  card: { borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: G.borderLight },
   bgLayer: { ...StyleSheet.absoluteFillObject },
   bgGradientTop: { position: 'absolute', top: 0, left: 0, right: 0, height: '40%', opacity: 0.5 },
   bgGradientBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '70%', backgroundColor: 'rgba(0,0,0,0.8)' },

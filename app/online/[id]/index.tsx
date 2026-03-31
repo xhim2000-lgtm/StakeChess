@@ -6,6 +6,7 @@ import { Colors } from '@/constants/Colors';
 import { useUser } from '@/contexts/UserContext';
 import { getTournamentById } from '@/data/onlineTournaments';
 import { getPlayerById } from '@/data/players';
+import { useLayout } from '@/hooks/useLayout';
 
 const G = Colors.gaming;
 const typeLabels: Record<string, string> = { blitz: 'Blitz', rapide: 'Rapide', classique: 'Classique' };
@@ -13,6 +14,7 @@ const typeLabels: Record<string, string> = { blitz: 'Blitz', rapide: 'Rapide', c
 export default function TournamentDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { isLandscape } = useLayout();
   const { user, registerForTournament, unregisterFromTournament, isRegistered } = useUser();
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -50,9 +52,9 @@ export default function TournamentDetailScreen() {
   const startDate = new Date(tournament.startTime);
 
   return (
-    <View style={styles.root}>
-      {/* Left: Tournament Info (40%) */}
-      <View style={styles.leftPanel}>
+    <View style={[styles.root, !isLandscape && { flexDirection: 'column' }]}>
+      {/* Left/Top: Tournament Info */}
+      <View style={[styles.leftPanel, !isLandscape && styles.topPanel]}>
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.leftContent}>
             <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -188,6 +190,7 @@ const styles = StyleSheet.create({
 
   // Left panel
   leftPanel: { width: '40%', borderRightWidth: 1, borderRightColor: G.borderGold, backgroundColor: 'rgba(0,0,0,0.3)' },
+  topPanel: { width: '100%', borderRightWidth: 0, borderBottomWidth: 1, borderBottomColor: G.borderGold, maxHeight: '50%' },
   leftContent: { padding: 20, gap: 12 },
   backBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
   backText: { color: G.gold, fontSize: 12, fontWeight: '600' },
