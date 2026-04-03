@@ -38,6 +38,8 @@ export function GamingTournamentCard({ tournament, index }: GamingTournamentCard
   const { isLandscape, height: screenH } = useLayout();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
+  const ctaPulse = useRef(new Animated.Value(0)).current;
+  const livePulse = useRef(new Animated.Value(0)).current;
 
   const cardWidth = isLandscape ? 320 : 280;
   const cardHeight = isLandscape ? Math.min(screenH - 120, 400) : 340;
@@ -47,9 +49,37 @@ export function GamingTournamentCard({ tournament, index }: GamingTournamentCard
       Animated.timing(fadeAnim, { toValue: 1, duration: 400, delay: index * 80, useNativeDriver: true }),
       Animated.timing(slideAnim, { toValue: 0, duration: 400, delay: index * 80, useNativeDriver: true }),
     ]).start();
-  }, [fadeAnim, slideAnim, index]);
+
+    // CTA button pulse
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(ctaPulse, { toValue: 1, duration: 1200, useNativeDriver: true }),
+        Animated.timing(ctaPulse, { toValue: 0, duration: 1200, useNativeDriver: true }),
+      ]),
+    ).start();
+
+    // Live badge pulse
+    if (tournament.status === 'live') {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(livePulse, { toValue: 1, duration: 800, useNativeDriver: true }),
+          Animated.timing(livePulse, { toValue: 0, duration: 800, useNativeDriver: true }),
+        ]),
+      ).start();
+    }
+  }, [fadeAnim, slideAnim, ctaPulse, livePulse, index, tournament.status]);
 
   const fillPct = (tournament.players / tournament.maxPlayers) * 100;
+
+  const ctaGlowOpacity = ctaPulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.15, 0.45],
+  });
+
+  const liveDotOpacity = livePulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.4, 1],
+  });
 
   return (
     <Animated.View style={[styles.cardOuter, { width: cardWidth, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
@@ -66,14 +96,16 @@ export function GamingTournamentCard({ tournament, index }: GamingTournamentCard
         <View style={styles.goldBorderTop} />
 
         <View style={styles.content}>
-          {/* Badge + Live */}
+          {/* Badge (tilted) + Live */}
           <View style={styles.topRow}>
-            <View style={[styles.badge, { borderColor: tournament.badgeColor }]}>
-              <Text style={[styles.badgeText, { color: tournament.badgeColor }]}>{tournament.badge}</Text>
+            <View style={styles.badgeOuter}>
+              <View style={[styles.badge, { borderColor: tournament.badgeColor }]}>
+                <Text style={[styles.badgeText, { color: tournament.badgeColor }]}>{tournament.badge}</Text>
+              </View>
             </View>
             {tournament.status === 'live' && (
               <View style={styles.liveBadge}>
-                <View style={styles.liveDot} />
+                <Animated.View style={[styles.liveDot, { opacity: liveDotOpacity }]} />
                 <Text style={styles.liveText}>LIVE</Text>
               </View>
             )}
@@ -111,10 +143,14 @@ export function GamingTournamentCard({ tournament, index }: GamingTournamentCard
               </View>
             </View>
 
-            <TouchableOpacity style={styles.ctaButton} activeOpacity={0.8}>
-              <Ionicons name="flash" size={14} color={G.bg} />
-              <Text style={styles.ctaText}>REJOINDRE</Text>
-            </TouchableOpacity>
+            {/* CTA with pulse glow */}
+            <View style={styles.ctaWrap}>
+              <Animated.View style={[styles.ctaGlow, { opacity: ctaGlowOpacity }]} />
+              <TouchableOpacity style={styles.ctaButton} activeOpacity={0.8}>
+                <Ionicons name="flash" size={14} color={G.bg} />
+                <Text style={styles.ctaText}>REJOINDRE</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </TouchableOpacity>
@@ -124,7 +160,15 @@ export function GamingTournamentCard({ tournament, index }: GamingTournamentCard
 
 const styles = StyleSheet.create({
   cardOuter: {},
-  card: { borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: G.borderLight },
+  card: {
+    borderRadius: 16, overflow: 'hidden',
+    borderWidth: 1, borderColor: G.borderGold,
+    shadowColor: G.gold,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
   bgLayer: { ...StyleSheet.absoluteFillObject },
   bgGradientTop: { position: 'absolute', top: 0, left: 0, right: 0, height: '40%', opacity: 0.5 },
   bgGradientBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '70%', backgroundColor: 'rgba(0,0,0,0.8)' },
@@ -134,8 +178,12 @@ const styles = StyleSheet.create({
 
   content: { flex: 1, padding: 14, justifyContent: 'space-between', zIndex: 10 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+
+  // Tilted badge
+  badgeOuter: { transform: [{ rotate: '-3deg' }] },
   badge: { borderWidth: 1.5, borderRadius: 5, paddingHorizontal: 8, paddingVertical: 3, backgroundColor: 'rgba(0,0,0,0.5)' },
   badgeText: { fontSize: 9, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
+
   liveBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
     backgroundColor: 'rgba(255,61,61,0.2)', borderWidth: 1, borderColor: G.red,
@@ -167,9 +215,18 @@ const styles = StyleSheet.create({
   progressBar: { flex: 1, height: 3, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' },
   progressFill: { height: '100%', backgroundColor: G.gold, borderRadius: 2 },
 
+  // CTA with glow
+  ctaWrap: { alignItems: 'center', justifyContent: 'center' },
+  ctaGlow: {
+    position: 'absolute',
+    width: '105%',
+    height: '140%',
+    borderRadius: 12,
+    backgroundColor: G.glowGold,
+  },
   ctaButton: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    backgroundColor: G.gold, paddingVertical: 11, borderRadius: 10,
+    backgroundColor: G.gold, paddingVertical: 11, borderRadius: 10, width: '100%',
     shadowColor: G.gold, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 6,
   },
   ctaText: { color: G.bg, fontSize: 12, fontWeight: '800', letterSpacing: 1.2 },

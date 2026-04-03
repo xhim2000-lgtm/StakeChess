@@ -8,6 +8,9 @@ import { Colors } from '@/constants/Colors';
 import { useUser } from '@/contexts/UserContext';
 import { GamingTournamentCard, GamingTournament } from '@/components/GamingTournamentCard';
 import { RechargeModal } from '@/components/RechargeModal';
+import { ChessPieceBackground } from '@/components/ChessPieceBackground';
+import { GlowingPlayButton } from '@/components/GlowingPlayButton';
+import { TrainingCard } from '@/components/TrainingCard';
 import { useLayout } from '@/hooks/useLayout';
 
 const G = Colors.gaming;
@@ -23,15 +26,15 @@ const gamingTournaments: GamingTournament[] = [
 ];
 
 const quickActions = [
-  { icon: 'stats-chart', label: 'MÉTRIQUES', color: G.gold },
+  { icon: 'stats-chart', label: 'METRIQUES', color: G.gold },
   { icon: 'trophy', label: 'CLASSEMENTS', color: '#00E5FF' },
   { icon: 'gift', label: 'CADEAUX', color: '#FF6B6B' },
   { icon: 'reload', label: 'ROUE', color: '#69F0AE' },
 ];
 
 const trainingLevels = [
-  { id: 'beginner', name: 'Débutant', icon: 'happy-outline', color: G.green, elo: '800-1200' },
-  { id: 'intermediate', name: 'Intermédiaire', icon: 'skull-outline', color: G.gold, elo: '1400-1800' },
+  { id: 'beginner', name: 'Debutant', icon: 'happy-outline', color: G.green, elo: '800-1200' },
+  { id: 'intermediate', name: 'Intermediaire', icon: 'skull-outline', color: G.gold, elo: '1400-1800' },
   { id: 'expert', name: 'Expert', icon: 'flame-outline', color: '#FF3D3D', elo: '2000-2400' },
 ];
 
@@ -41,44 +44,49 @@ function formatCoins(n: number): string {
   return n.toString();
 }
 
-// ─── Hero Section (shared) ───────────────────────────────────
+// ─── Hero Section ───────────────────────────────────────────
 function HeroSection({ user, router, shimmerOpacity, isLandscape }: any) {
   return (
-    <View style={[s.heroBranding, !isLandscape && { flexDirection: 'row', gap: 20, alignItems: 'center' }]}>
-      <View style={[s.heroTitles, !isLandscape && { alignItems: 'flex-start' }]}>
-        <Text style={s.heroSubtitle}>ONLINE TOURNAMENT PLATFORM</Text>
-        <Animated.Text style={[s.heroTitle, !isLandscape && { fontSize: 36 }, { opacity: shimmerOpacity }]}>
-          STAKE
-        </Animated.Text>
-        <Text style={[s.heroTitleWhite, !isLandscape && { fontSize: 32 }]}>CHESS</Text>
-        <View style={s.heroDivider}>
-          <View style={s.heroDividerLine} />
-          <View style={s.heroDiamond} />
-          <View style={s.heroDividerLine} />
-        </View>
-        <Text style={s.heroTagline}>MISEZ. JOUEZ. GAGNEZ.</Text>
-      </View>
+    <View style={[s.heroWrap, !isLandscape && s.heroWrapPortrait]}>
+      <ChessPieceBackground density={isLandscape ? 'normal' : 'sparse'} />
 
-      {!isLandscape && (
-        <View style={{ gap: 10, flex: 1 }}>
-          <View style={s.statsRow}>
-            <View style={s.statItem}><Text style={s.statValue}>{user.elo}</Text><Text style={s.statLabel}>ELO</Text></View>
-            <View style={s.statDivider} />
-            <View style={s.statItem}><Text style={s.statValueGold}>{user.wins}</Text><Text style={s.statLabel}>WINS</Text></View>
-            <View style={s.statDivider} />
-            <View style={s.statItem}><Text style={s.statValueGold}>{formatCoins(user.totalEarnings * 1000)}</Text><Text style={s.statLabel}>GAINS</Text></View>
+      <View style={[s.heroBranding, !isLandscape && { flexDirection: 'row', gap: 20, alignItems: 'center' }]}>
+        <View style={[s.heroTitles, !isLandscape && { alignItems: 'flex-start' }]}>
+          <Text style={s.heroSubtitle}>ONLINE TOURNAMENT PLATFORM</Text>
+          <Animated.Text style={[s.heroTitle, !isLandscape && { fontSize: 36 }, { opacity: shimmerOpacity }]}>
+            STAKE
+          </Animated.Text>
+          <Text style={[s.heroTitleWhite, !isLandscape && { fontSize: 32 }]}>CHESS</Text>
+          <View style={s.heroDivider}>
+            <View style={s.heroDividerLine} />
+            <View style={s.heroDiamond} />
+            <View style={s.heroDividerLine} />
           </View>
-          <TouchableOpacity style={s.playButton} activeOpacity={0.85} onPress={() => router.push('/online/t1')}>
-            <Ionicons name="play" size={16} color={G.bg} />
-            <Text style={s.playButtonText}>JOUER</Text>
-          </TouchableOpacity>
+          <Text style={s.heroTagline}>MISEZ. JOUEZ. GAGNEZ.</Text>
         </View>
-      )}
+
+        {!isLandscape && (
+          <View style={{ gap: 10, flex: 1 }}>
+            <View style={s.statsRow}>
+              <View style={s.statItem}><Text style={s.statValue}>{user.elo}</Text><Text style={s.statLabel}>ELO</Text></View>
+              <View style={s.statDivider} />
+              <View style={s.statItem}><Text style={s.statValueGold}>{user.wins}</Text><Text style={s.statLabel}>WINS</Text></View>
+              <View style={s.statDivider} />
+              <View style={s.statItem}><Text style={s.statValueGold}>{formatCoins(user.totalEarnings * 1000)}</Text><Text style={s.statLabel}>GAINS</Text></View>
+            </View>
+            <GlowingPlayButton
+              compact
+              label="JOUER"
+              onPress={() => router.push('/online/t1')}
+            />
+          </View>
+        )}
+      </View>
     </View>
   );
 }
 
-// ─── Carousel Sections (shared) ──────────────────────────────
+// ─── Carousel Sections ──────────────────────────────────────
 function CarouselSections({ router, isLandscape }: { router: any; isLandscape: boolean }) {
   const cardSnap = (isLandscape ? 320 : 280) + 16;
 
@@ -87,23 +95,20 @@ function CarouselSections({ router, isLandscape }: { router: any; isLandscape: b
       {/* Training */}
       <View style={s.sectionHeader}>
         <Ionicons name="hardware-chip-outline" size={14} color={G.gold} />
-        <Text style={s.sectionTitle}>ENTRAÎNEMENT IA</Text>
+        <Text style={s.sectionTitle}>ENTRAINEMENT IA</Text>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} snapToInterval={cardSnap} decelerationRate="fast" contentContainerStyle={s.carouselContent}>
         {trainingLevels.map((lvl) => (
-          <TouchableOpacity key={lvl.id} style={[s.trainingCard, !isLandscape && { width: 160, height: 190 }]} activeOpacity={0.85} onPress={() => router.push(`/training/${lvl.id}` as any)}>
-            <View style={s.trainingCardInner}>
-              <View style={[s.trainingIconWrap, { borderColor: lvl.color }, !isLandscape && { width: 44, height: 44, borderRadius: 22 }]}>
-                <Ionicons name={lvl.icon as any} size={isLandscape ? 32 : 24} color={lvl.color} />
-              </View>
-              <Text style={[s.trainingName, { color: lvl.color }]}>{lvl.name}</Text>
-              <Text style={s.trainingElo}>Elo {lvl.elo}</Text>
-              <View style={[s.trainingPlayBtn, { backgroundColor: lvl.color }]}>
-                <Ionicons name="play" size={12} color={G.bg} />
-                <Text style={s.trainingPlayText}>JOUER</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
+          <TrainingCard
+            key={lvl.id}
+            id={lvl.id}
+            name={lvl.name}
+            icon={lvl.icon}
+            color={lvl.color}
+            elo={lvl.elo}
+            compact={!isLandscape}
+            onPress={() => router.push(`/training/${lvl.id}` as any)}
+          />
         ))}
       </ScrollView>
 
@@ -188,14 +193,13 @@ export default function HomeScreen() {
 
       {/* ── MAIN ── */}
       {isLandscape ? (
-        /* ═══ LANDSCAPE: Hero left + Carousels right ═══ */
         <View style={s.mainRow}>
           <Animated.View style={[s.heroPanel, { opacity: heroOpacity }]}>
             <HeroSection user={user} router={router} shimmerOpacity={shimmerOpacity} isLandscape />
-            <TouchableOpacity style={s.playButton} activeOpacity={0.85} onPress={() => router.push('/online/t1')}>
-              <Ionicons name="play" size={18} color={G.bg} />
-              <Text style={s.playButtonText}>JOUER MAINTENANT</Text>
-            </TouchableOpacity>
+            <GlowingPlayButton
+              label="JOUEZ !"
+              onPress={() => router.push('/online/t1')}
+            />
             <View style={s.statsRow}>
               <View style={s.statItem}><Text style={s.statValue}>{user.elo}</Text><Text style={s.statLabel}>ELO</Text></View>
               <View style={s.statDivider} />
@@ -217,13 +221,11 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
       ) : (
-        /* ═══ PORTRAIT: Vertical scroll ═══ */
         <ScrollView style={s.rightPanel} showsVerticalScrollIndicator={false} contentContainerStyle={s.rightContent}>
           <Animated.View style={[s.heroPanelPortrait, { opacity: heroOpacity }]}>
             <HeroSection user={user} router={router} shimmerOpacity={shimmerOpacity} isLandscape={false} />
           </Animated.View>
 
-          {/* Quick actions row for portrait */}
           <View style={s.portraitQuickRow}>
             {quickActions.map((a, i) => (
               <TouchableOpacity key={i} style={[s.portraitQuickBtn, { borderColor: a.color }]}>
@@ -266,7 +268,7 @@ const s = StyleSheet.create({
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   walletChip: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: 'rgba(212,175,55,0.1)', borderRadius: 14,
+    backgroundColor: G.bgGlow, borderRadius: 14,
     paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: G.borderGold,
   },
   coinIcon: { color: G.gold, fontSize: 12, fontWeight: '800' },
@@ -279,21 +281,25 @@ const s = StyleSheet.create({
   heroPanel: {
     width: '30%', padding: 20, justifyContent: 'center', alignItems: 'center', gap: 16,
     borderRightWidth: 1, borderRightColor: G.borderGold, backgroundColor: 'rgba(0,0,0,0.3)',
+    overflow: 'hidden',
   },
 
   // Portrait hero
   heroPanelPortrait: {
     padding: 20, backgroundColor: 'rgba(0,0,0,0.3)',
     borderBottomWidth: 1, borderBottomColor: G.borderGold,
+    overflow: 'hidden',
   },
 
   // Hero content
+  heroWrap: { width: '100%' },
+  heroWrapPortrait: {},
   heroBranding: { alignItems: 'center' },
   heroTitles: { alignItems: 'center' },
   heroSubtitle: { color: G.textMuted, fontSize: 8, fontWeight: '600', letterSpacing: 3, marginBottom: 6 },
   heroTitle: {
     color: G.gold, fontSize: 48, fontWeight: '900', letterSpacing: 6,
-    textShadowColor: 'rgba(212, 175, 55, 0.4)', textShadowOffset: { width: 0, height: 3 }, textShadowRadius: 16,
+    textShadowColor: G.glowGold, textShadowOffset: { width: 0, height: 3 }, textShadowRadius: 16,
   },
   heroTitleWhite: {
     color: G.textPrimary, fontSize: 42, fontWeight: '900', letterSpacing: 10, marginTop: -8,
@@ -304,13 +310,7 @@ const s = StyleSheet.create({
   heroDiamond: { width: 6, height: 6, backgroundColor: G.gold, transform: [{ rotate: '45deg' }] },
   heroTagline: { color: G.goldLight, fontSize: 10, fontWeight: '700', letterSpacing: 4 },
 
-  // Play button + stats (shared)
-  playButton: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    backgroundColor: G.gold, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12,
-    shadowColor: G.gold, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.5, shadowRadius: 12, elevation: 10, width: '100%',
-  },
-  playButtonText: { color: G.bg, fontSize: 14, fontWeight: '900', letterSpacing: 2 },
+  // Stats
   statsRow: {
     flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 10,
     paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: G.borderGold, width: '100%',
@@ -347,13 +347,4 @@ const s = StyleSheet.create({
   seeAll: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   seeAllText: { color: G.gold, fontSize: 11, fontWeight: '600' },
   carouselContent: { paddingHorizontal: 16, gap: 16 },
-
-  // Training cards
-  trainingCard: { width: 180, height: 220, borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: G.borderLight, backgroundColor: 'rgba(0,0,0,0.5)' },
-  trainingCardInner: { flex: 1, padding: 16, alignItems: 'center', justifyContent: 'center', gap: 8 },
-  trainingIconWrap: { width: 56, height: 56, borderRadius: 28, borderWidth: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.03)' },
-  trainingName: { fontSize: 14, fontWeight: '800', letterSpacing: 1 },
-  trainingElo: { color: G.textMuted, fontSize: 11, fontWeight: '600' },
-  trainingPlayBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 18, paddingVertical: 7, borderRadius: 12, marginTop: 4 },
-  trainingPlayText: { color: G.bg, fontSize: 10, fontWeight: '800', letterSpacing: 1 },
 });
