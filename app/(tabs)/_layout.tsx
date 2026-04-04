@@ -1,4 +1,5 @@
 import { Tabs } from 'expo-router';
+import { Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 
@@ -47,6 +48,16 @@ export default function TabLayout() {
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="game-controller" size={size - 4} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="france"
+        options={{
+          title: 'France',
+          headerShown: false,
+          tabBarIcon: ({ size }) => (
+            <Text style={{ fontSize: size - 6 }}>🇫🇷</Text>
           ),
         }}
       />
