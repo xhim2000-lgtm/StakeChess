@@ -1,10 +1,10 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { GameLayout } from '@/components/GameLayout';
-import { getAIMove } from '@/utils/chessAI';
+import { getAIMoveAsync, initAIEngine, destroyAIEngine, isStockfishReady } from '@/utils/chessAI';
 import { Chess } from 'chess.js';
 
 const G = Colors.gaming;
@@ -28,11 +28,22 @@ export default function TrainingScreen() {
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [whiteTime, setWhiteTime] = useState(600);
   const [blackTime, setBlackTime] = useState(600);
+  const [engineStatus, setEngineStatus] = useState<'loading' | 'stockfish' | 'fallback'>('loading');
   const [, setTick] = useState(0);
   const aiThinking = useRef(false);
 
+  // Initialize Stockfish engine on mount
+  useEffect(() => {
+    initAIEngine().then((available) => {
+      setEngineStatus(available ? 'stockfish' : 'fallback');
+    });
+    return () => {
+      destroyAIEngine();
+    };
+  }, []);
+
   const opponent = {
-    name: 'Stockfish AI',
+    name: isStockfishReady() ? 'Stockfish' : 'Chess AI',
     level: config.name.toUpperCase(),
     elo: config.elo,
     avatar: 'AI',
@@ -57,24 +68,34 @@ export default function TrainingScreen() {
     setTick(t => t + 1);
   }, [game]);
 
-  const playAI = useCallback(() => {
+  const playAI = useCallback(async () => {
     if (game.isGameOver() || game.turn() !== 'b' || aiThinking.current) return;
     aiThinking.current = true;
-    setTimeout(() => {
-      const move = getAIMove(game, aiLevel);
-      if (move) game.move(move);
-      aiThinking.current = false;
-      syncHistory();
+    setTick(t => t + 1);
 
-      if (game.isGameOver()) {
-        setGameOver(true);
-        if (game.isCheckmate()) {
-          setResult(game.turn() === 'w' ? 'Défaite...' : 'Victoire !');
-        } else {
-          setResult('Partie nulle');
-        }
+    // Small delay for natural feel
+    await new Promise(r => setTimeout(r, 300 + Math.random() * 400));
+
+    try {
+      const move = await getAIMoveAsync(game, aiLevel);
+      if (move) game.move(move);
+    } catch {
+      // Fallback: play random legal move
+      const moves = game.moves();
+      if (moves.length > 0) game.move(moves[Math.floor(Math.random() * moves.length)]);
+    }
+
+    aiThinking.current = false;
+    syncHistory();
+
+    if (game.isGameOver()) {
+      setGameOver(true);
+      if (game.isCheckmate()) {
+        setResult(game.turn() === 'w' ? 'Défaite...' : 'Victoire !');
+      } else {
+        setResult('Partie nulle');
       }
-    }, 400 + Math.random() * 600);
+    }
   }, [game, aiLevel, syncHistory]);
 
   const handleMove = useCallback(() => {
@@ -114,22 +135,40 @@ export default function TrainingScreen() {
     ]);
   };
 
-  const bottomExtra = gameOver ? (
-    <View style={extraStyles.resultBlock}>
-      <Text style={[extraStyles.resultText, {
-        color: result.includes('Victoire') ? G.gold : result.includes('Défaite') ? G.red : G.textSecondary,
-      }]}>
-        {result}
-      </Text>
-      <TouchableOpacity style={extraStyles.restartBtn} onPress={handleRestart}>
-        <Ionicons name="reload" size={12} color={G.bg} />
-        <Text style={extraStyles.restartText}>REJOUER</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => router.back()}>
-        <Text style={extraStyles.backText}>Retour</Text>
-      </TouchableOpacity>
+  const bottomExtra = (
+    <View style={extraStyles.statusBlock}>
+      {/* Engine status indicator */}
+      <View style={extraStyles.engineRow}>
+        <View style={[extraStyles.engineDot, {
+          backgroundColor: engineStatus === 'stockfish' ? G.green : engineStatus === 'loading' ? G.gold : G.textMuted,
+        }]} />
+        <Text style={extraStyles.engineText}>
+          {engineStatus === 'stockfish' ? 'STOCKFISH' : engineStatus === 'loading' ? 'CHARGEMENT...' : 'MOTEUR LOCAL'}
+        </Text>
+      </View>
+
+      {gameOver && (
+        <View style={extraStyles.resultBlock}>
+          <Text style={[extraStyles.resultText, {
+            color: result.includes('Victoire') ? G.gold : result.includes('Défaite') ? G.red : G.textSecondary,
+          }]}>
+            {result}
+          </Text>
+          <TouchableOpacity style={extraStyles.restartBtn} onPress={handleRestart}>
+            <Ionicons name="reload" size={12} color={G.bg} />
+            <Text style={extraStyles.restartText}>REJOUER</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Text style={extraStyles.backText}>Retour</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {aiThinking.current && !gameOver && (
+        <Text style={extraStyles.thinkingText}>Réflexion en cours...</Text>
+      )}
     </View>
-  ) : undefined;
+  );
 
   return (
     <GameLayout
@@ -153,6 +192,16 @@ export default function TrainingScreen() {
 }
 
 const extraStyles = StyleSheet.create({
+  statusBlock: { alignItems: 'center', gap: 6, marginTop: 4 },
+  engineRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12,
+  },
+  engineDot: { width: 6, height: 6, borderRadius: 3 },
+  engineText: {
+    color: G.textMuted, fontSize: 8, fontWeight: '700', letterSpacing: 1,
+  },
   resultBlock: { alignItems: 'center', gap: 6, marginTop: 4 },
   resultText: { fontSize: 16, fontWeight: '900', letterSpacing: 1 },
   restartBtn: {
@@ -161,4 +210,7 @@ const extraStyles = StyleSheet.create({
   },
   restartText: { color: G.bg, fontWeight: '800', fontSize: 10, letterSpacing: 0.5 },
   backText: { color: G.textMuted, fontSize: 11, fontWeight: '600' },
+  thinkingText: {
+    color: G.gold, fontSize: 10, fontWeight: '600', fontStyle: 'italic',
+  },
 });

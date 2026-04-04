@@ -73,7 +73,6 @@ export function GameLayout({
     setMessages(prev => [...prev, msg]);
     setChatInput('');
 
-    // Simulate opponent auto-reply after a short delay
     setTimeout(() => {
       const replies = ['Merci !', 'Bien joué !', '...', 'Intéressant.', 'Hmm...'];
       const reply: ChatMessage = {
@@ -107,6 +106,26 @@ export function GameLayout({
       {/* Decorative background pieces */}
       <Text style={styles.bgPieceLeft}>{'\u265B'}</Text>
       <Text style={styles.bgPieceRight}>{'\u2654'}</Text>
+
+      {/* ── STAKE CHESS Header ── */}
+      <View style={styles.gameHeader}>
+        <View style={styles.gameHeaderLeft}>
+          <Text style={styles.gameHeaderIcon}>{'\u265A'}</Text>
+          <View>
+            <Text style={styles.gameHeaderTitle}>
+              STAKE <Text style={styles.gameHeaderTitleGold}>CHESS</Text>
+            </Text>
+          </View>
+        </View>
+        <View style={styles.gameHeaderCenter}>
+          <View style={styles.gameHeaderDiamond} />
+          <Text style={styles.gameHeaderSubtitle}>PARTIE EN COURS</Text>
+          <View style={styles.gameHeaderDiamond} />
+        </View>
+        <View style={styles.gameHeaderRight}>
+          <Ionicons name="settings-outline" size={16} color={G.textMuted} />
+        </View>
+      </View>
 
       <View style={styles.threeColumns}>
         {/* ═══ LEFT COLUMN ═══ */}
@@ -304,6 +323,59 @@ const styles = StyleSheet.create({
   bgPieceRight: {
     position: 'absolute', right: 20, bottom: '15%', fontSize: 160,
     color: G.gold, opacity: 0.02, zIndex: 0,
+  },
+
+  // ── STAKE CHESS Header ──
+  gameHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    borderBottomWidth: 1,
+    borderBottomColor: G.borderGold,
+    zIndex: 2,
+  },
+  gameHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  gameHeaderIcon: {
+    fontSize: 22,
+    color: G.gold,
+  },
+  gameHeaderTitle: {
+    color: G.textPrimary,
+    fontSize: 16,
+    fontWeight: '900',
+    letterSpacing: 2,
+  },
+  gameHeaderTitleGold: {
+    color: G.gold,
+  },
+  gameHeaderCenter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  gameHeaderDiamond: {
+    width: 6,
+    height: 6,
+    backgroundColor: G.gold,
+    transform: [{ rotate: '45deg' }],
+  },
+  gameHeaderSubtitle: {
+    color: G.goldMuted,
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 2,
+  },
+  gameHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
 
   // ── 3-column layout ──

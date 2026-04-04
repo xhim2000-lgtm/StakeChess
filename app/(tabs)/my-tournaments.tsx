@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { useUser } from '@/contexts/UserContext';
 import { onlineTournaments } from '@/data/onlineTournaments';
+import { useLayout } from '@/hooks/useLayout';
 
 const G = Colors.gaming;
 const typeLabels: Record<string, string> = { blitz: 'Blitz', rapide: 'Rapide', classique: 'Classique' };
@@ -12,132 +13,169 @@ const typeLabels: Record<string, string> = { blitz: 'Blitz', rapide: 'Rapide', c
 export default function MyTournamentsScreen() {
   const { user } = useUser();
   const router = useRouter();
+  const { isLandscape } = useLayout();
 
   const registered = onlineTournaments.filter(t => user.registeredTournaments.includes(t.id));
   const inProgress = registered.filter(t => t.status === 'in_progress');
   const upcoming = registered.filter(t => t.status === 'open');
   const history = user.tournamentHistory;
 
+  const renderCard = (
+    t: { id: string; name: string; type: string; currentRound?: number; rounds?: number; buyIn?: number; status?: string },
+    statusColor: string,
+    extra?: React.ReactNode,
+  ) => (
+    <TouchableOpacity
+      key={t.id}
+      style={styles.card}
+      onPress={() => router.push(`/online/${t.id}`)}
+    >
+      <View style={styles.cardHeader}>
+        <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+        <Text style={styles.cardName}>{t.name}</Text>
+        <View style={styles.cardTypeBadge}>
+          <Text style={styles.cardTypeText}>{typeLabels[t.type]}</Text>
+        </View>
+      </View>
+      {extra}
+    </TouchableOpacity>
+  );
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.content}>
-        <Text style={styles.title}>MES TOURNOIS</Text>
-
-        {/* In progress */}
-        {inProgress.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>EN COURS</Text>
-            <View style={styles.cardsRow}>
-              {inProgress.map(t => (
-                <TouchableOpacity key={t.id} style={styles.card} onPress={() => router.push(`/online/${t.id}`)}>
-                  <View style={styles.cardHeader}>
-                    <View style={[styles.statusDot, { backgroundColor: G.gold }]} />
-                    <Text style={styles.cardName}>{t.name}</Text>
-                  </View>
-                  <Text style={styles.cardInfo}>{typeLabels[t.type]} - Ronde {t.currentRound}/{t.rounds}</Text>
-                  <TouchableOpacity style={styles.playButton} onPress={() => router.push(`/game/${t.id}-r${t.currentRound}`)}>
-                    <Ionicons name="play-circle" size={16} color={G.bg} />
-                    <Text style={styles.playButtonText}>REJOUER</Text>
-                  </TouchableOpacity>
-                </TouchableOpacity>
-              ))}
-            </View>
+    <View style={[styles.root, !isLandscape && { flexDirection: 'column' }]}>
+      {/* Left/Top: Summary */}
+      <View style={[styles.leftPanel, !isLandscape && styles.topPanel]}>
+        <Ionicons name="trophy" size={40} color={G.gold} />
+        <Text style={styles.leftTitle}>MES TOURNOIS</Text>
+        <View style={styles.summaryRow}>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryValue}>{inProgress.length}</Text>
+            <Text style={styles.summaryLabel}>En cours</Text>
           </View>
-        )}
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryValue}>{upcoming.length}</Text>
+            <Text style={styles.summaryLabel}>À venir</Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryValue}>{history.length}</Text>
+            <Text style={styles.summaryLabel}>Terminés</Text>
+          </View>
+        </View>
+      </View>
 
-        {/* Upcoming */}
-        {upcoming.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>A VENIR</Text>
-            <View style={styles.cardsRow}>
+      {/* Right: Lists */}
+      <ScrollView style={styles.rightPanel} showsVerticalScrollIndicator={false}>
+        <View style={styles.rightContent}>
+          {inProgress.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>EN COURS</Text>
+              {inProgress.map(t => renderCard(t, G.gold,
+                <View style={styles.cardExtra}>
+                  <Text style={styles.cardInfo}>Ronde {t.currentRound}/{t.rounds}</Text>
+                  <TouchableOpacity
+                    style={styles.playBtn}
+                    onPress={() => router.push(`/game/${t.id}-r${t.currentRound}`)}
+                  >
+                    <Ionicons name="play" size={12} color={G.bg} />
+                    <Text style={styles.playBtnText}>JOUER</Text>
+                  </TouchableOpacity>
+                </View>,
+              ))}
+            </>
+          )}
+
+          {upcoming.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>À VENIR</Text>
               {upcoming.map(t => {
                 const diff = new Date(t.startTime).getTime() - Date.now();
-                const hours = Math.floor(diff / 3600000);
-                const mins = Math.floor((diff % 3600000) / 60000);
-                return (
-                  <TouchableOpacity key={t.id} style={styles.card} onPress={() => router.push(`/online/${t.id}`)}>
-                    <View style={styles.cardHeader}>
-                      <View style={[styles.statusDot, { backgroundColor: G.green }]} />
-                      <Text style={styles.cardName}>{t.name}</Text>
-                    </View>
-                    <Text style={styles.cardInfo}>{typeLabels[t.type]} - Buy-in: {t.buyIn}€</Text>
-                    <Text style={styles.countdown}>Commence dans {hours}h {mins}min</Text>
-                  </TouchableOpacity>
+                const h = Math.floor(diff / 3600000);
+                const m = Math.floor((diff % 3600000) / 60000);
+                return renderCard(t, G.green,
+                  <View style={styles.cardExtra}>
+                    <Text style={styles.cardInfo}>Buy-in: {t.buyIn}€</Text>
+                    <Text style={styles.countdown}>Dans {h}h {m}min</Text>
+                  </View>,
                 );
               })}
-            </View>
-          </View>
-        )}
+            </>
+          )}
 
-        {/* History */}
-        <View style={styles.section}>
           <Text style={styles.sectionTitle}>HISTORIQUE</Text>
           {history.length === 0 ? (
-            <Text style={styles.emptyText}>Aucun historique</Text>
+            <View style={styles.emptyBox}>
+              <Ionicons name="document-text-outline" size={28} color={G.textMuted} />
+              <Text style={styles.emptyText}>Aucun historique</Text>
+            </View>
           ) : (
-            <View style={styles.cardsRow}>
-              {history.map((h, i) => (
-                <View key={i} style={styles.card}>
-                  <View style={styles.cardHeader}>
-                    <View style={[styles.statusDot, { backgroundColor: G.textMuted }]} />
-                    <Text style={styles.cardName}>{h.tournamentName}</Text>
-                  </View>
-                  <Text style={styles.cardInfo}>{typeLabels[h.type]} - {new Date(h.date).toLocaleDateString('fr-FR')}</Text>
-                  <View style={styles.resultRow}>
-                    <Text style={styles.rankText}>#{h.rank}/{h.totalPlayers}</Text>
-                    {h.earnings > 0 && <Text style={styles.earningsText}>+{h.earnings}€</Text>}
-                  </View>
+            history.map((h, i) => (
+              <View key={i} style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <View style={[styles.statusDot, { backgroundColor: G.textMuted }]} />
+                  <Text style={styles.cardName}>{h.tournamentName}</Text>
+                </View>
+                <View style={styles.cardExtra}>
+                  <Text style={styles.cardInfo}>{new Date(h.date).toLocaleDateString('fr-FR')}</Text>
+                  <Text style={styles.rankText}>#{h.rank}/{h.totalPlayers}</Text>
+                  {h.earnings > 0 && <Text style={styles.earningsText}>+{h.earnings}€</Text>}
                 </View>
               ))}
             </View>
           )}
-        </View>
 
-        {registered.length === 0 && history.length === 0 && (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="trophy-outline" size={40} color={G.textMuted} />
-            <Text style={styles.emptyTitle}>Aucun tournoi</Text>
-            <Text style={styles.emptySubtitle}>Inscrivez-vous à un tournoi pour commencer</Text>
-          </View>
-        )}
-      </View>
-    </ScrollView>
+          {registered.length === 0 && history.length === 0 && (
+            <View style={styles.emptyBox}>
+              <Ionicons name="trophy-outline" size={40} color={G.textMuted} />
+              <Text style={styles.emptyTitle}>Aucun tournoi</Text>
+              <Text style={styles.emptyText}>Inscrivez-vous pour commencer</Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: G.bg },
-  content: { padding: 16 },
-  title: { fontSize: 18, fontWeight: '800', color: G.textPrimary, letterSpacing: 2, marginBottom: 16 },
-  section: { marginBottom: 18 },
-  sectionTitle: { fontSize: 12, fontWeight: '700', color: G.gold, letterSpacing: 1.5, marginBottom: 10 },
-  cardsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  root: { flex: 1, flexDirection: 'row' },
+  leftPanel: {
+    width: '30%', padding: 20, alignItems: 'center', justifyContent: 'center', gap: 16,
+    borderRightWidth: 1, borderRightColor: G.borderGold, backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  topPanel: {
+    width: '100%', paddingVertical: 16, paddingHorizontal: 20, gap: 12,
+    borderRightWidth: 0, borderBottomWidth: 1, borderBottomColor: G.borderGold,
+  },
+  leftTitle: { color: G.gold, fontSize: 16, fontWeight: '900', letterSpacing: 2 },
+  summaryRow: { flexDirection: 'row', gap: 16 },
+  summaryItem: { alignItems: 'center' },
+  summaryValue: { color: G.textPrimary, fontSize: 24, fontWeight: '800' },
+  summaryLabel: { color: G.textMuted, fontSize: 9, fontWeight: '600', letterSpacing: 0.5 },
+
+  rightPanel: { flex: 1 },
+  rightContent: { padding: 20 },
+  sectionTitle: { color: G.textPrimary, fontSize: 13, fontWeight: '800', letterSpacing: 1.5, marginBottom: 10, marginTop: 10 },
+
   card: {
-    backgroundColor: G.bgSecondary,
-    borderRadius: 12,
-    padding: 12,
-    minWidth: 240,
-    flex: 1,
-    maxWidth: '48%' as any,
-    borderWidth: 1,
-    borderColor: G.borderLight,
+    backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 12, padding: 14, marginBottom: 8,
+    borderWidth: 1, borderColor: G.borderLight,
   },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
-  statusDot: { width: 7, height: 7, borderRadius: 4 },
-  cardName: { fontSize: 14, fontWeight: '700', color: G.textPrimary },
-  cardInfo: { fontSize: 12, color: G.textSecondary, marginLeft: 13 },
-  playButton: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: G.gold, paddingHorizontal: 12, paddingVertical: 7,
-    borderRadius: 8, alignSelf: 'flex-start', marginTop: 8, marginLeft: 13,
+  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  cardName: { color: G.textPrimary, fontSize: 14, fontWeight: '600', flex: 1 },
+  cardTypeBadge: { backgroundColor: 'rgba(212,175,55,0.15)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
+  cardTypeText: { color: G.gold, fontSize: 10, fontWeight: '600' },
+  cardExtra: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 8, marginLeft: 16 },
+  cardInfo: { color: G.textSecondary, fontSize: 12 },
+  countdown: { color: G.gold, fontSize: 12, fontWeight: '600' },
+  playBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: G.gold,
+    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8,
   },
-  playButtonText: { color: G.bg, fontWeight: '800', fontSize: 11, letterSpacing: 0.5 },
-  countdown: { fontSize: 12, color: G.gold, fontWeight: '600', marginTop: 4, marginLeft: 13 },
-  resultRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6, marginLeft: 13 },
-  rankText: { fontSize: 13, fontWeight: '700', color: G.textPrimary },
-  earningsText: { fontSize: 13, fontWeight: '700', color: G.gold },
-  emptyContainer: { alignItems: 'center', paddingVertical: 40 },
-  emptyTitle: { fontSize: 16, fontWeight: '700', color: G.textSecondary, marginTop: 10 },
-  emptySubtitle: { fontSize: 13, color: G.textMuted, marginTop: 4 },
-  emptyText: { fontSize: 13, color: G.textMuted },
+  playBtnText: { color: G.bg, fontSize: 10, fontWeight: '800' },
+  rankText: { color: G.textPrimary, fontSize: 13, fontWeight: '600' },
+  earningsText: { color: G.green, fontSize: 13, fontWeight: '600' },
+  emptyBox: { alignItems: 'center', paddingVertical: 30, gap: 6 },
+  emptyTitle: { color: G.textSecondary, fontSize: 16, fontWeight: '600' },
+  emptyText: { color: G.textMuted, fontSize: 12 },
 });

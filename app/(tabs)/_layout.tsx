@@ -11,15 +11,15 @@ export default function TabLayout() {
         tabBarActiveTintColor: G.gold,
         tabBarInactiveTintColor: G.textMuted,
         tabBarStyle: {
-          backgroundColor: G.bgSecondary,
-          borderTopColor: G.borderLight,
+          backgroundColor: 'rgba(0,0,0,0.9)',
+          borderTopColor: G.borderGold,
           borderTopWidth: 1,
-          height: 46,
-          paddingTop: 2,
+          height: 50,
+          paddingTop: 4,
           paddingBottom: 4,
         },
         tabBarLabelStyle: {
-          fontSize: 9,
+          fontSize: 10,
           fontWeight: '700',
           letterSpacing: 0.5,
           textTransform: 'uppercase',
@@ -28,14 +28,15 @@ export default function TabLayout() {
           marginBottom: -2,
         },
         headerStyle: {
-          backgroundColor: G.bg,
-          shadowColor: 'transparent',
-          elevation: 0,
+          backgroundColor: 'transparent',
         },
         headerTintColor: G.textPrimary,
         headerTitleStyle: {
           fontWeight: '700',
           letterSpacing: 1,
+        },
+        sceneStyle: {
+          backgroundColor: 'transparent',
         },
       }}
     >
@@ -53,6 +54,7 @@ export default function TabLayout() {
         name="my-tournaments"
         options={{
           title: 'Mes Tournois',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar" size={size - 4} color={color} />
           ),
@@ -62,6 +64,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Profil',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size - 4} color={color} />
           ),

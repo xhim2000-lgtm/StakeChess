@@ -41,5 +41,8 @@ export const Colors = {
     red: '#FF3D3D',
     purple: '#9C27B0',
     cyan: '#00BCD4',
+    glowGold: 'rgba(212,175,55,0.35)',
+    glowGoldStrong: 'rgba(212,175,55,0.6)',
+    bgGlow: 'rgba(212,175,55,0.08)',
   },
 } as const;

@@ -3,10 +3,18 @@
     "name": "StakeChess",
     "slug": "stakechess",
     "version": "1.0.0",
+    "sdkVersion": "54.0.0",
     "orientation": "landscape",
     "scheme": "stakechess",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
+    "platforms": ["ios", "android", "web"],
     "newArchEnabled": true,
+    "ios": {
+      "requireFullScreen": true
+    },
+    "android": {
+      "screenOrientation": "landscape"
+    },
     "web": {
       "bundler": "metro",
       "output": "static",
