@@ -176,4 +176,7 @@ const styles = StyleSheet.create({
   historyDate: { color: G.textMuted, fontSize: 12 },
   historyRank: { color: G.textSecondary, fontSize: 13, fontWeight: '600' },
   historyEarnings: { color: G.textMuted, fontSize: 13, fontWeight: '600' },
+  statBox: { alignItems: 'center', gap: 4, padding: 10 },
+  statValue: { color: G.textPrimary, fontSize: 18, fontWeight: '700' },
+  statLabel: { color: G.textMuted, fontSize: 9, fontWeight: '600' },
 });
