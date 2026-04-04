@@ -37,7 +37,7 @@ export default function TabLayout() {
           letterSpacing: 1,
         },
         sceneStyle: {
-          backgroundColor: 'transparent',
+          backgroundColor: G.bg,
         },
       }}
     >
