@@ -41,9 +41,6 @@ export default function GameScreen() {
       }
     }, 1000);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [gameActive, game]);
-
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [isWhiteTurn, gameOver]);
 
   const opponent = {
