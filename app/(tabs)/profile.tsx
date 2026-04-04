@@ -105,6 +105,16 @@ export default function ProfileScreen() {
   );
 }
 
+function StatBox({ icon, color, label, value }: { icon: string; color: string; label: string; value: string }) {
+  return (
+    <View style={styles.statBox}>
+      <Ionicons name={icon as any} size={18} color={color} />
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   root: { flex: 1, flexDirection: 'row' },
   leftPanel: {

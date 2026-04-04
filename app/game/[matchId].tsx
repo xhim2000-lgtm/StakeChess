@@ -27,7 +27,6 @@ export default function GameScreen() {
       if (intervalRef.current) clearInterval(intervalRef.current);
       return;
     }
-
     intervalRef.current = setInterval(() => {
       if (isWhiteTurn) {
         setWhiteTime(prev => {
@@ -41,6 +40,8 @@ export default function GameScreen() {
         });
       }
     }, 1000);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [gameActive, game]);
 
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [isWhiteTurn, gameOver]);

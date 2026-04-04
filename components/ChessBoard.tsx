@@ -10,7 +10,6 @@ const PIECE_UNICODE: Record<string, Record<PieceSymbol, string>> = {
   w: { p: '\u2659', r: '\u2656', n: '\u2658', b: '\u2657', q: '\u2655', k: '\u2654' },
   b: { p: '\u265F', r: '\u265C', n: '\u265E', b: '\u265D', q: '\u265B', k: '\u265A' },
 };
-
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 const RANKS = ['8', '7', '6', '5', '4', '3', '2', '1'];
 
@@ -62,9 +61,7 @@ export function ChessBoard({
 
           if (game.isGameOver()) {
             let result: 'white' | 'black' | 'draw' = 'draw';
-            if (game.isCheckmate()) {
-              result = game.turn() === 'w' ? 'black' : 'white';
-            }
+            if (game.isCheckmate()) result = game.turn() === 'w' ? 'black' : 'white';
             onGameEnd?.(result);
           }
           return;
@@ -185,8 +182,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   square: {
-    width: SQUARE_SIZE,
-    height: SQUARE_SIZE,
     alignItems: 'center',
     justifyContent: 'center',
   },

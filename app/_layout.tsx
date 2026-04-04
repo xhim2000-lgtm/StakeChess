@@ -6,6 +6,8 @@ import { View, ImageBackground, StyleSheet } from 'react-native';
 
 const G = Colors.gaming;
 
+const G = Colors.gaming;
+
 export default function RootLayout() {
   return (
     <UserProvider>

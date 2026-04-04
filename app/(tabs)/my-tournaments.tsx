@@ -119,8 +119,8 @@ export default function MyTournamentsScreen() {
                   <Text style={styles.rankText}>#{h.rank}/{h.totalPlayers}</Text>
                   {h.earnings > 0 && <Text style={styles.earningsText}>+{h.earnings}€</Text>}
                 </View>
-              </View>
-            ))
+              ))}
+            </View>
           )}
 
           {registered.length === 0 && history.length === 0 && (
