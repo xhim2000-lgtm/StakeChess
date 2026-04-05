@@ -4,8 +4,8 @@ import { ImageBackground, View, StyleSheet, ImageSourcePropType } from 'react-na
 const backgrounds: Record<string, ImageSourcePropType> = {
   main: require('@/assets/images/background-main.png'),
   france: require('@/assets/images/background-france.png'),
-  game: require('@/assets/images/background-game.png'),
-  dark: require('@/assets/images/background-dark.png'),
+  game: require('@/assets/images/background-game.jpg'),
+  dark: require('@/assets/images/background-dark.jpg'),
 };
 
 interface PageBackgroundProps {
