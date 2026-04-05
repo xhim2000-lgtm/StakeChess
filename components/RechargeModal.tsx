@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { useUser } from '@/contexts/UserContext';
 
+const G = Colors.gaming;
+
 interface RechargeModalProps {
   visible: boolean;
   onClose: () => void;
@@ -37,22 +39,26 @@ export function RechargeModal({ visible, onClose }: RechargeModalProps) {
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.overlay}>
-        <View style={styles.modal}>
+    <Modal visible={visible} transparent animationType="fade">
+      <TouchableOpacity
+        style={styles.overlay}
+        activeOpacity={1}
+        onPress={onClose}
+      >
+        <TouchableOpacity activeOpacity={1} style={styles.modal}>
+          {/* Close button */}
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Text style={styles.closeIcon}>{'\u2715'}</Text>
+          </TouchableOpacity>
+
           {confirmed ? (
             <View style={styles.confirmation}>
-              <Ionicons name="checkmark-circle" size={64} color={Colors.success} />
-              <Text style={styles.confirmText}>Rechargement effectué !</Text>
+              <Ionicons name="checkmark-circle" size={64} color={G.green} />
+              <Text style={styles.confirmText}>Rechargement effectue !</Text>
             </View>
           ) : (
             <>
-              <View style={styles.header}>
-                <Text style={styles.title}>Recharger le solde</Text>
-                <TouchableOpacity onPress={onClose}>
-                  <Ionicons name="close" size={24} color={Colors.textSecondary} />
-                </TouchableOpacity>
-              </View>
+              <Text style={styles.title}>Recharger le solde</Text>
 
               <Text style={styles.subtitle}>Montants rapides</Text>
               <View style={styles.quickGrid}>
@@ -67,7 +73,7 @@ export function RechargeModal({ visible, onClose }: RechargeModalProps) {
                 ))}
               </View>
 
-              <Text style={styles.subtitle}>Montant personnalisé</Text>
+              <Text style={styles.subtitle}>Montant personnalise</Text>
               <View style={styles.customRow}>
                 <TextInput
                   style={styles.input}
@@ -75,20 +81,16 @@ export function RechargeModal({ visible, onClose }: RechargeModalProps) {
                   keyboardType="numeric"
                   value={customAmount}
                   onChangeText={setCustomAmount}
-                  placeholderTextColor={Colors.textLight}
+                  placeholderTextColor={G.textMuted}
                 />
                 <TouchableOpacity style={styles.customButton} onPress={handleCustomRecharge}>
                   <Text style={styles.customButtonText}>Recharger</Text>
                 </TouchableOpacity>
               </View>
-
-              <TouchableOpacity style={styles.paypalButton}>
-                <Text style={styles.paypalText}>Payer via PayPal (simulation)</Text>
-              </TouchableOpacity>
             </>
           )}
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 }
@@ -96,100 +98,108 @@ export function RechargeModal({ visible, onClose }: RechargeModalProps) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modal: {
-    backgroundColor: Colors.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: G.bgSecondary,
+    borderRadius: 16,
     padding: 24,
-    minHeight: 380,
+    width: '85%',
+    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: G.borderGold,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  closeButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'center',
+  },
+  closeIcon: {
+    color: G.gold,
+    fontSize: 18,
+    fontWeight: '700',
   },
   title: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: Colors.text,
+    fontSize: 18,
+    fontWeight: '800',
+    color: G.textPrimary,
+    letterSpacing: 1,
+    marginBottom: 16,
   },
   subtitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-    marginBottom: 10,
-    marginTop: 8,
+    fontSize: 12,
+    fontWeight: '600',
+    color: G.textSecondary,
+    marginBottom: 8,
+    marginTop: 4,
+    letterSpacing: 0.5,
   },
   quickGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 8,
     marginBottom: 12,
   },
   quickButton: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    backgroundColor: 'rgba(212,175,55,0.15)',
+    borderWidth: 1,
+    borderColor: G.borderGold,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
     borderRadius: 10,
-    minWidth: 80,
+    minWidth: 70,
     alignItems: 'center',
   },
   quickButtonText: {
-    color: Colors.white,
-    fontSize: 16,
-    fontWeight: '600',
+    color: G.gold,
+    fontSize: 15,
+    fontWeight: '700',
   },
   customRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 16,
+    gap: 8,
+    marginBottom: 8,
   },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: G.borderLight,
     borderRadius: 10,
     paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: Colors.text,
+    paddingVertical: 10,
+    fontSize: 15,
+    color: G.textPrimary,
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   customButton: {
-    backgroundColor: Colors.success,
-    paddingHorizontal: 20,
+    backgroundColor: G.gold,
+    paddingHorizontal: 18,
     borderRadius: 10,
     justifyContent: 'center',
   },
   customButtonText: {
-    color: Colors.white,
-    fontWeight: '600',
-    fontSize: 15,
-  },
-  paypalButton: {
-    backgroundColor: '#0070BA',
-    padding: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  paypalText: {
-    color: Colors.white,
-    fontSize: 15,
-    fontWeight: '600',
+    color: G.bg,
+    fontWeight: '800',
+    fontSize: 13,
   },
   confirmation: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: 40,
   },
   confirmText: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: Colors.success,
-    marginTop: 16,
+    fontSize: 18,
+    fontWeight: '700',
+    color: G.green,
+    marginTop: 12,
   },
 });

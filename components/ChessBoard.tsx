@@ -4,7 +4,6 @@ import { Colors } from '@/constants/Colors';
 import { Chess, Square, PieceSymbol } from 'chess.js';
 
 const G = Colors.gaming;
-const { height: SCREEN_H } = Dimensions.get('window');
 
 const PIECE_UNICODE: Record<string, Record<PieceSymbol, string>> = {
   w: { p: '\u2659', r: '\u2656', n: '\u2658', b: '\u2657', q: '\u2655', k: '\u2654' },
@@ -13,9 +12,11 @@ const PIECE_UNICODE: Record<string, Record<PieceSymbol, string>> = {
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 const RANKS = ['8', '7', '6', '5', '4', '3', '2', '1'];
 
-// Auto-size squares based on available height (landscape)
-const BOARD_AREA = Math.min(SCREEN_H * 0.78, 480);
-const SQUARE_SIZE = Math.floor(BOARD_AREA / 8);
+function computeSquareSize() {
+  const { width, height } = Dimensions.get('window');
+  const boardSize = Math.min(height * 0.75, width * 0.45, 600);
+  return Math.floor(boardSize / 8);
+}
 
 interface ChessBoardProps {
   game?: Chess;
@@ -41,13 +42,14 @@ export function ChessBoard({
   const [legalMoves, setLegalMoves] = useState<Square[]>([]);
   const [, setTick] = useState(0);
 
+  const squareSize = computeSquareSize();
+  const boardSize = squareSize * 8;
+
   const files = playerColor === 'w' ? FILES : [...FILES].reverse();
   const ranks = playerColor === 'w' ? RANKS : [...RANKS].reverse();
 
   const handleSquarePress = useCallback((square: Square) => {
     if (game.isGameOver() || locked) return;
-
-    // Don't allow moves when it's not the player's turn (in external game mode)
     if (externalGame && game.turn() !== playerColor) return;
 
     if (selectedSquare) {
@@ -84,20 +86,20 @@ export function ChessBoard({
 
   return (
     <View style={styles.container}>
-      <View style={styles.board}>
-        {/* Top coordinates */}
-        <View style={styles.fileLabelsTop}>
-          <View style={{ width: 16 }} />
+      <View style={[styles.board, { width: boardSize + 32, }]}>
+        {/* Top file labels */}
+        <View style={styles.fileLabels}>
+          <View style={styles.coordSpacer} />
           {files.map(f => (
-            <Text key={f} style={styles.coordLabel}>{f}</Text>
+            <Text key={f} style={[styles.coordLabel, { width: squareSize }]}>{f}</Text>
           ))}
-          <View style={{ width: 16 }} />
+          <View style={styles.coordSpacer} />
         </View>
 
-        {ranks.map((rank, ri) => (
+        {ranks.map((rank) => (
           <View key={rank} style={styles.row}>
-            <Text style={styles.coordLabel}>{rank}</Text>
-            {files.map((file, fi) => {
+            <Text style={[styles.coordLabel, styles.coordSpacer]}>{rank}</Text>
+            {files.map((file) => {
               const square = `${file}${rank}` as Square;
               const isLight = (parseInt(rank) + file.charCodeAt(0)) % 2 === 0;
               const piece = game.get(square);
@@ -112,7 +114,12 @@ export function ChessBoard({
                 <TouchableOpacity
                   key={square}
                   style={[
-                    styles.square,
+                    {
+                      width: squareSize,
+                      height: squareSize,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    },
                     isLight ? styles.lightSquare : styles.darkSquare,
                     isSelected && styles.selectedSquare,
                     (isLastMoveFrom || isLastMoveTo) && styles.lastMoveSquare,
@@ -122,28 +129,49 @@ export function ChessBoard({
                   activeOpacity={0.7}
                 >
                   {piece && (
-                    <Text style={[styles.piece, isLight ? styles.pieceOnLight : styles.pieceOnDark]}>
+                    <Text style={{
+                      fontSize: squareSize * 0.75,
+                      lineHeight: squareSize,
+                      textAlign: 'center',
+                      textShadowColor: 'rgba(0,0,0,0.2)',
+                      textShadowOffset: { width: 1, height: 1 },
+                      textShadowRadius: 2,
+                    }}>
                       {PIECE_UNICODE[piece.color][piece.type]}
                     </Text>
                   )}
-                  {isLegal && !piece && <View style={styles.legalDot} />}
+                  {isLegal && !piece && (
+                    <View style={{
+                      width: squareSize * 0.25,
+                      height: squareSize * 0.25,
+                      borderRadius: squareSize * 0.125,
+                      backgroundColor: 'rgba(0,0,0,0.2)',
+                    }} />
+                  )}
                   {isCaptureLegal && (
-                    <View style={styles.captureRing} />
+                    <View style={{
+                      position: 'absolute',
+                      width: squareSize - 4,
+                      height: squareSize - 4,
+                      borderRadius: (squareSize - 4) / 2,
+                      borderWidth: 3,
+                      borderColor: 'rgba(212,175,55,0.6)',
+                    }} />
                   )}
                 </TouchableOpacity>
               );
             })}
-            <Text style={styles.coordLabel}>{rank}</Text>
+            <Text style={[styles.coordLabel, styles.coordSpacer]}>{rank}</Text>
           </View>
         ))}
 
-        {/* Bottom coordinates */}
-        <View style={styles.fileLabelsBottom}>
-          <View style={{ width: 16 }} />
+        {/* Bottom file labels */}
+        <View style={styles.fileLabels}>
+          <View style={styles.coordSpacer} />
           {files.map(f => (
-            <Text key={f} style={styles.coordLabel}>{f}</Text>
+            <Text key={f} style={[styles.coordLabel, { width: squareSize }]}>{f}</Text>
           ))}
-          <View style={{ width: 16 }} />
+          <View style={styles.coordSpacer} />
         </View>
       </View>
     </View>
@@ -166,24 +194,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  fileLabelsTop: {
+  fileLabels: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  fileLabelsBottom: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  coordSpacer: {
+    width: 16,
   },
   coordLabel: {
-    width: 16,
     textAlign: 'center',
     fontSize: 9,
     color: G.goldMuted,
     fontWeight: '600',
-  },
-  square: {
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   lightSquare: {
     backgroundColor: '#EDD6B0',
@@ -192,41 +214,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#B88762',
   },
   selectedSquare: {
-    backgroundColor: 'rgba(212, 175, 55, 0.6)',
+    backgroundColor: 'rgba(212,175,55,0.6)',
   },
   lastMoveSquare: {
-    backgroundColor: 'rgba(212, 175, 55, 0.25)',
+    backgroundColor: 'rgba(212,175,55,0.25)',
   },
   checkSquare: {
-    backgroundColor: 'rgba(255, 61, 61, 0.5)',
-  },
-  piece: {
-    fontSize: SQUARE_SIZE * 0.75,
-    lineHeight: SQUARE_SIZE,
-    textAlign: 'center',
-  },
-  pieceOnLight: {
-    textShadowColor: 'rgba(0,0,0,0.15)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
-  pieceOnDark: {
-    textShadowColor: 'rgba(0,0,0,0.25)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
-  legalDot: {
-    width: SQUARE_SIZE * 0.25,
-    height: SQUARE_SIZE * 0.25,
-    borderRadius: SQUARE_SIZE * 0.125,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-  },
-  captureRing: {
-    position: 'absolute',
-    width: SQUARE_SIZE - 4,
-    height: SQUARE_SIZE - 4,
-    borderRadius: (SQUARE_SIZE - 4) / 2,
-    borderWidth: 3,
-    borderColor: 'rgba(212, 175, 55, 0.6)',
+    backgroundColor: 'rgba(255,61,61,0.5)',
   },
 });

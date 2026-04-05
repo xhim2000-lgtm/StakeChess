@@ -246,7 +246,7 @@ export default function HomeScreen() {
 
 // ─── Styles ──────────────────────────────────────────────────
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: G.bg },
+  root: { flex: 1, backgroundColor: G.bg, paddingBottom: 56 },
 
   // Header
   header: {
