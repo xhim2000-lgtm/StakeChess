@@ -20,6 +20,7 @@
       "output": "static",
       "favicon": "./assets/favicon.png"
     },
+    "assetBundlePatterns": ["**/*"],
     "plugins": ["expo-router"],
     "experiments": {
       "typedRoutes": true
