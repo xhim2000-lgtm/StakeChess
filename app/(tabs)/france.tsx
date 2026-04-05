@@ -14,7 +14,7 @@ export default function FranceScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  root: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: G.bg, paddingBottom: 56 },
   title: { color: G.gold, fontSize: 20, fontWeight: '900', letterSpacing: 2 },
   subtitle: { color: G.textMuted, fontSize: 14, marginTop: 8 },
 });

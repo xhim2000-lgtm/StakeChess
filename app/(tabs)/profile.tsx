@@ -116,7 +116,7 @@ function StatBox({ icon, color, label, value }: { icon: string; color: string; l
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, flexDirection: 'row' },
+  root: { flex: 1, flexDirection: 'row', backgroundColor: G.bg, paddingBottom: 56 },
   leftPanel: {
     width: '30%', padding: 20, alignItems: 'center', justifyContent: 'center', gap: 10,
     borderRightWidth: 1, borderRightColor: G.borderGold, backgroundColor: 'rgba(0,0,0,0.3)',

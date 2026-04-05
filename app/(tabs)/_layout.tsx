@@ -12,12 +12,18 @@ export default function TabLayout() {
         tabBarActiveTintColor: G.gold,
         tabBarInactiveTintColor: G.textMuted,
         tabBarStyle: {
-          backgroundColor: 'rgba(0,0,0,0.9)',
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 9999,
+          elevation: 10,
+          backgroundColor: 'rgba(0,0,0,0.95)',
           borderTopColor: G.borderGold,
           borderTopWidth: 1,
-          height: 50,
+          height: 56,
           paddingTop: 4,
-          paddingBottom: 4,
+          paddingBottom: 6,
         },
         tabBarLabelStyle: {
           fontSize: 10,
@@ -37,7 +43,7 @@ export default function TabLayout() {
           letterSpacing: 1,
         },
         sceneStyle: {
-          backgroundColor: 'transparent',
+          backgroundColor: G.bg,
         },
       }}
     >
