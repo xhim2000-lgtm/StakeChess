@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { useUser } from '@/contexts/UserContext';
 import { onlineTournaments } from '@/data/onlineTournaments';
+import { PageBackground } from '@/components/PageBackground';
 import { useLayout } from '@/hooks/useLayout';
 
 const G = Colors.gaming;
@@ -42,6 +43,7 @@ export default function MyTournamentsScreen() {
   );
 
   return (
+    <PageBackground variant="dark" overlay={0.7}>
     <View style={[styles.root, !isLandscape && { flexDirection: 'column' }]}>
       {/* Left/Top: Summary */}
       <View style={[styles.leftPanel, !isLandscape && styles.topPanel]}>
@@ -133,6 +135,7 @@ export default function MyTournamentsScreen() {
         </View>
       </ScrollView>
     </View>
+    </PageBackground>
   );
 }
 

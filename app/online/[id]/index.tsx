@@ -184,7 +184,7 @@ export default function TournamentDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, flexDirection: 'row' },
+  root: { flex: 1, flexDirection: 'row', backgroundColor: G.bg },
   errorBox: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
   errorText: { color: G.red, fontSize: 16, fontWeight: '600' },
 

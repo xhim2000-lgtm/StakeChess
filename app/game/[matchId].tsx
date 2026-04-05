@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Colors } from '@/constants/Colors';
+import { PageBackground } from '@/components/PageBackground';
 import { GameLayout } from '@/components/GameLayout';
 import { Chess } from 'chess.js';
 
@@ -87,20 +88,22 @@ export default function GameScreen() {
   };
 
   return (
-    <GameLayout
-      game={game}
-      opponent={opponent}
-      player={player}
-      whiteTime={whiteTime}
-      blackTime={blackTime}
-      isWhiteTurn={isWhiteTurn}
-      gameActive={!gameOver}
-      moveHistory={moveHistory}
-      onGameEnd={handleGameEnd}
-      onMove={handleMove}
-      onResign={handleResign}
-      onDrawOffer={handleDrawOffer}
-      lastMove={lastMove}
-    />
+    <PageBackground variant="game" overlay={0.75}>
+      <GameLayout
+        game={game}
+        opponent={opponent}
+        player={player}
+        whiteTime={whiteTime}
+        blackTime={blackTime}
+        isWhiteTurn={isWhiteTurn}
+        gameActive={!gameOver}
+        moveHistory={moveHistory}
+        onGameEnd={handleGameEnd}
+        onMove={handleMove}
+        onResign={handleResign}
+        onDrawOffer={handleDrawOffer}
+        lastMove={lastMove}
+      />
+    </PageBackground>
   );
 }
