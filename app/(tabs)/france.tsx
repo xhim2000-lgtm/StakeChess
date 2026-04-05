@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { franceTournaments, REGIONS, FranceTournament } from '@/data/franceTournaments';
+import { PageBackground } from '@/components/PageBackground';
 import { useLayout } from '@/hooks/useLayout';
 
 const G = Colors.gaming;
@@ -148,10 +149,12 @@ export default function FranceScreen() {
   );
 
   return (
+    <PageBackground variant="france" overlay={0.7}>
     <View style={[styles.root, !isLandscape && styles.rootPortrait]}>
       {leftPanel}
       {rightPanel}
     </View>
+    </PageBackground>
   );
 }
 

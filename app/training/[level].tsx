@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
+import { PageBackground } from '@/components/PageBackground';
 import { GameLayout } from '@/components/GameLayout';
 import { getAIMoveAsync, initAIEngine, destroyAIEngine, isStockfishReady } from '@/utils/chessAI';
 import { Chess } from 'chess.js';
@@ -171,23 +172,25 @@ export default function TrainingScreen() {
   );
 
   return (
-    <GameLayout
-      game={game}
-      opponent={opponent}
-      player={player}
-      whiteTime={whiteTime}
-      blackTime={blackTime}
-      isWhiteTurn={game.turn() === 'w'}
-      gameActive={!gameOver}
-      moveHistory={moveHistory}
-      onGameEnd={handleGameEnd}
-      onMove={handleMove}
-      onResign={handleResign}
-      onDrawOffer={handleDrawOffer}
-      lastMove={lastMove}
-      locked={aiThinking.current || game.turn() === 'b'}
-      bottomExtra={bottomExtra}
-    />
+    <PageBackground variant="game" overlay={0.75}>
+      <GameLayout
+        game={game}
+        opponent={opponent}
+        player={player}
+        whiteTime={whiteTime}
+        blackTime={blackTime}
+        isWhiteTurn={game.turn() === 'w'}
+        gameActive={!gameOver}
+        moveHistory={moveHistory}
+        onGameEnd={handleGameEnd}
+        onMove={handleMove}
+        onResign={handleResign}
+        onDrawOffer={handleDrawOffer}
+        lastMove={lastMove}
+        locked={aiThinking.current || game.turn() === 'b'}
+        bottomExtra={bottomExtra}
+      />
+    </PageBackground>
   );
 }
 

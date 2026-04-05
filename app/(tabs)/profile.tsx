@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { useUser } from '@/contexts/UserContext';
 import { Ionicons } from '@expo/vector-icons';
+import { PageBackground } from '@/components/PageBackground';
 import { useLayout } from '@/hooks/useLayout';
 
 const G = Colors.gaming;
@@ -18,6 +19,7 @@ export default function ProfileScreen() {
     ? Math.round((user.wins / user.tournamentsPlayed) * 100) : 0;
 
   return (
+    <PageBackground variant="dark" overlay={0.7}>
     <View style={[styles.root, !isLandscape && { flexDirection: 'column' }]}>
       {/* Left/Top: Avatar + Key Stats */}
       <View style={[styles.leftPanel, !isLandscape && styles.topPanel]}>
@@ -102,6 +104,7 @@ export default function ProfileScreen() {
         </View>
       </ScrollView>
     </View>
+    </PageBackground>
   );
 }
 

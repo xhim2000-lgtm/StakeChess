@@ -11,6 +11,7 @@ import { RechargeModal } from '@/components/RechargeModal';
 import { ChessPieceBackground } from '@/components/ChessPieceBackground';
 import { GlowingPlayButton } from '@/components/GlowingPlayButton';
 import { TrainingCard } from '@/components/TrainingCard';
+import { PageBackground } from '@/components/PageBackground';
 import { useLayout } from '@/hooks/useLayout';
 
 const G = Colors.gaming;
@@ -162,6 +163,7 @@ export default function HomeScreen() {
   const shimmerOpacity = shimmerAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.6, 1, 0.6] });
 
   return (
+    <PageBackground variant="main" overlay={0.65}>
     <View style={s.root}>
       {/* ── HEADER ── */}
       <View style={s.header}>
@@ -241,6 +243,7 @@ export default function HomeScreen() {
 
       <RechargeModal visible={showRecharge} onClose={() => setShowRecharge(false)} />
     </View>
+    </PageBackground>
   );
 }
 
