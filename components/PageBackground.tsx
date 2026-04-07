@@ -7,29 +7,29 @@ interface PageBackgroundProps {
   overlay?: number;
 }
 
-const backgrounds: Record<string, { uri: string }> = {
-  main: {
-    uri: 'https://res.cloudinary.com/dlirp7kl/image/upload/f_auto,q_auto/background-main.png',
-  },
-  profile: {
-    uri: 'https://res.cloudinary.com/dlirp7kl/image/upload/f_auto,q_auto/background-profil.png',
-  },
-  france: {
-    uri: 'https://res.cloudinary.com/dlirp7kl/image/upload/f_auto,q_auto/background-main.png',
-  },
-  game: {
-    uri: 'https://res.cloudinary.com/dlirp7kl/image/upload/f_auto,q_auto/background-main.png',
-  },
-  dark: {
-    uri: 'https://res.cloudinary.com/dlirp7kl/image/upload/f_auto,q_auto/background-main.png',
-  },
-};
-
-export function PageBackground({
+export const PageBackground = ({
   children,
   variant = 'dark',
   overlay = 0.7,
-}: PageBackgroundProps) {
+}: PageBackgroundProps) => {
+  const backgrounds: Record<string, { uri: string }> = {
+    main: {
+      uri: 'https://res.cloudinary.com/dlirpp7kl/image/upload/f_auto,q_auto/background-main.png',
+    },
+    profile: {
+      uri: 'https://res.cloudinary.com/dlirpp7kl/image/upload/f_auto,q_auto/background-profil.png',
+    },
+    france: {
+      uri: 'https://res.cloudinary.com/dlirpp7kl/image/upload/f_auto,q_auto/background-main.png',
+    },
+    game: {
+      uri: 'https://res.cloudinary.com/dlirpp7kl/image/upload/f_auto,q_auto/background-main.png',
+    },
+    dark: {
+      uri: 'https://res.cloudinary.com/dlirpp7kl/image/upload/f_auto,q_auto/background-main.png',
+    },
+  };
+
   return (
     <ImageBackground
       source={backgrounds[variant]}
@@ -41,7 +41,7 @@ export function PageBackground({
       </View>
     </ImageBackground>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
