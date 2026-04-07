@@ -34,14 +34,7 @@ export default function TabLayout() {
         tabBarIconStyle: {
           marginBottom: -2,
         },
-        headerStyle: {
-          backgroundColor: 'transparent',
-        },
-        headerTintColor: G.textPrimary,
-        headerTitleStyle: {
-          fontWeight: '700',
-          letterSpacing: 1,
-        },
+        headerShown: false,
         sceneStyle: {
           backgroundColor: G.bg,
         },
@@ -51,29 +44,17 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Jouer',
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="game-controller" size={size - 4} color={color} />
+          tabBarIcon: ({ size }) => (
+            <Text style={{ fontSize: size - 4 }}>🎮</Text>
           ),
         }}
       />
       <Tabs.Screen
         name="france"
         options={{
-          title: 'France',
-          headerShown: false,
+          title: 'Tournois',
           tabBarIcon: ({ size }) => (
-            <Text style={{ fontSize: size - 6 }}>🇫🇷</Text>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="my-tournaments"
-        options={{
-          title: 'Mes Tournois',
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar" size={size - 4} color={color} />
+            <Text style={{ fontSize: size - 4 }}>🏆</Text>
           ),
         }}
       />
@@ -81,9 +62,8 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Profil',
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size - 4} color={color} />
+          tabBarIcon: ({ size }) => (
+            <Text style={{ fontSize: size - 4 }}>👤</Text>
           ),
         }}
       />
