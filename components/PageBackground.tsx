@@ -1,27 +1,29 @@
-import React, { ReactNode } from 'react';
-import { ImageBackground, View, StyleSheet, Platform, ImageSourcePropType } from 'react-native';
-
-const isWeb = Platform.OS === 'web';
-
-const backgrounds: Record<string, ImageSourcePropType> = isWeb
-  ? {
-      main: { uri: '/backgrounds/background-main.png' },
-      france: { uri: '/backgrounds/background-france.png' },
-      game: { uri: '/backgrounds/background-game.png' },
-      dark: { uri: '/backgrounds/background-dark.png' },
-    }
-  : {
-      main: require('@/assets/images/background-main.png'),
-      france: require('@/assets/images/background-france.png'),
-      game: require('@/assets/images/background-game.png'),
-      dark: require('@/assets/images/background-dark.png'),
-    };
+import { ImageBackground, View, StyleSheet } from 'react-native';
+import { ReactNode } from 'react';
 
 interface PageBackgroundProps {
   children: ReactNode;
-  variant?: 'main' | 'france' | 'game' | 'dark';
+  variant?: 'main' | 'france' | 'game' | 'profile' | 'dark';
   overlay?: number;
 }
+
+const backgrounds: Record<string, { uri: string }> = {
+  main: {
+    uri: 'https://res.cloudinary.com/dlirp7kl/image/upload/f_auto,q_auto/background-main.png',
+  },
+  profile: {
+    uri: 'https://res.cloudinary.com/dlirp7kl/image/upload/f_auto,q_auto/background-profil.png',
+  },
+  france: {
+    uri: 'https://res.cloudinary.com/dlirp7kl/image/upload/f_auto,q_auto/background-main.png',
+  },
+  game: {
+    uri: 'https://res.cloudinary.com/dlirp7kl/image/upload/f_auto,q_auto/background-main.png',
+  },
+  dark: {
+    uri: 'https://res.cloudinary.com/dlirp7kl/image/upload/f_auto,q_auto/background-main.png',
+  },
+};
 
 export function PageBackground({
   children,

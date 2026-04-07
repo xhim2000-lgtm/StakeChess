@@ -19,7 +19,7 @@ export default function ProfileScreen() {
     ? Math.round((user.wins / user.tournamentsPlayed) * 100) : 0;
 
   return (
-    <PageBackground variant="dark" overlay={0.7}>
+    <PageBackground variant="profile" overlay={0.7}>
     <View style={[styles.root, !isLandscape && { flexDirection: 'column' }]}>
       {/* Left/Top: Avatar + Key Stats */}
       <View style={[styles.leftPanel, !isLandscape && styles.topPanel]}>
