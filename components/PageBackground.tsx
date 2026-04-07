@@ -1,12 +1,21 @@
 import React, { ReactNode } from 'react';
-import { ImageBackground, View, StyleSheet, ImageSourcePropType } from 'react-native';
+import { ImageBackground, View, StyleSheet, Platform, ImageSourcePropType } from 'react-native';
 
-const backgrounds: Record<string, ImageSourcePropType> = {
-  main: require('@/assets/images/background-main.png'),
-  france: require('@/assets/images/background-france.png'),
-  game: require('@/assets/images/background-game.png'),
-  dark: require('@/assets/images/background-dark.png'),
-};
+const isWeb = Platform.OS === 'web';
+
+const backgrounds: Record<string, ImageSourcePropType> = isWeb
+  ? {
+      main: { uri: '/backgrounds/background-main.png' },
+      france: { uri: '/backgrounds/background-france.png' },
+      game: { uri: '/backgrounds/background-game.png' },
+      dark: { uri: '/backgrounds/background-dark.png' },
+    }
+  : {
+      main: require('@/assets/images/background-main.png'),
+      france: require('@/assets/images/background-france.png'),
+      game: require('@/assets/images/background-game.png'),
+      dark: require('@/assets/images/background-dark.png'),
+    };
 
 interface PageBackgroundProps {
   children: ReactNode;
