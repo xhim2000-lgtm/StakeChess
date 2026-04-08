@@ -30,8 +30,10 @@ export default function TrainingScreen() {
   const [whiteTime, setWhiteTime] = useState(600);
   const [blackTime, setBlackTime] = useState(600);
   const [engineStatus, setEngineStatus] = useState<'loading' | 'stockfish' | 'fallback'>('loading');
+  const [gameStarted, setGameStarted] = useState(false);
   const [, setTick] = useState(0);
   const aiThinking = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Initialize Stockfish engine on mount
   useEffect(() => {
@@ -42,6 +44,43 @@ export default function TrainingScreen() {
       destroyAIEngine();
     };
   }, []);
+
+  // Timer countdown
+  useEffect(() => {
+    if (!gameStarted || gameOver) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      return;
+    }
+
+    timerRef.current = setInterval(() => {
+      const isWhiteTurn = game.turn() === 'w';
+      if (isWhiteTurn) {
+        setWhiteTime(prev => {
+          if (prev <= 1) {
+            setGameOver(true);
+            setResult('Temps ecoulé - Défaite...');
+            if (timerRef.current) clearInterval(timerRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      } else {
+        setBlackTime(prev => {
+          if (prev <= 1) {
+            setGameOver(true);
+            setResult('Temps ecoulé - Victoire !');
+            if (timerRef.current) clearInterval(timerRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [gameStarted, gameOver, game]);
 
   const opponent = {
     name: isStockfishReady() ? 'Stockfish' : 'Chess AI',
@@ -100,9 +139,10 @@ export default function TrainingScreen() {
   }, [game, aiLevel, syncHistory]);
 
   const handleMove = useCallback(() => {
+    if (!gameStarted) setGameStarted(true);
     syncHistory();
     if (!game.isGameOver()) playAI();
-  }, [game, playAI, syncHistory]);
+  }, [game, gameStarted, playAI, syncHistory]);
 
   const handleGameEnd = useCallback((res: 'white' | 'black' | 'draw') => {
     setGameOver(true);
@@ -119,7 +159,9 @@ export default function TrainingScreen() {
     setLastMove(null);
     setWhiteTime(600);
     setBlackTime(600);
+    setGameStarted(false);
     aiThinking.current = false;
+    if (timerRef.current) clearInterval(timerRef.current);
     setTick(t => t + 1);
   };
 
