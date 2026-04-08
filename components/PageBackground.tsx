@@ -1,4 +1,4 @@
-import { ImageBackground, View, StyleSheet } from 'react-native';
+import { ImageBackground, View, StyleSheet, ViewStyle } from 'react-native';
 import { ReactNode } from 'react';
 
 interface PageBackgroundProps {
@@ -7,26 +7,26 @@ interface PageBackgroundProps {
   overlay?: number;
 }
 
-export const PageBackground = ({
+export function PageBackground({
   children,
   variant = 'dark',
-  overlay = 0.7,
-}: PageBackgroundProps) => {
+  overlay = 0.7
+}: PageBackgroundProps) {
   const backgrounds: Record<string, { uri: string }> = {
     main: {
-      uri: 'https://res.cloudinary.com/dlirpp7kl/image/upload/f_auto,q_auto/background-main.png',
+      uri: 'https://res.cloudinary.com/dlirpp7kl/image/upload/f_auto,q_auto/background-main.png'
     },
     profile: {
-      uri: 'https://res.cloudinary.com/dlirpp7kl/image/upload/f_auto,q_auto/background-profil.png',
+      uri: 'https://res.cloudinary.com/dlirpp7kl/image/upload/f_auto,q_auto/background-profil.png'
     },
     france: {
-      uri: 'https://res.cloudinary.com/dlirpp7kl/image/upload/f_auto,q_auto/background-main.png',
+      uri: 'https://res.cloudinary.com/dlirpp7kl/image/upload/f_auto,q_auto/background-main.png'
     },
     game: {
-      uri: 'https://res.cloudinary.com/dlirpp7kl/image/upload/f_auto,q_auto/background-main.png',
+      uri: 'https://res.cloudinary.com/dlirpp7kl/image/upload/f_auto,q_auto/background-main.png'
     },
     dark: {
-      uri: 'https://res.cloudinary.com/dlirpp7kl/image/upload/f_auto,q_auto/background-main.png',
+      uri: 'https://res.cloudinary.com/dlirpp7kl/image/upload/f_auto,q_auto/background-main.png'
     },
   };
 
@@ -36,12 +36,15 @@ export const PageBackground = ({
       style={styles.container}
       resizeMode="cover"
     >
-      <View style={[styles.overlay, { backgroundColor: `rgba(0,0,0,${overlay})` }]}>
+      <View style={[
+        styles.overlay,
+        { backgroundColor: `rgba(0,0,0,${overlay})` } as ViewStyle
+      ]}>
         {children}
       </View>
     </ImageBackground>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
